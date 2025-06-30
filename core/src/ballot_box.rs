@@ -16,11 +16,14 @@
 // The system includes features for tie-breaking and detecting stalled votes.
 
 use core::fmt;
-use std::mem::size_of;
+use std::{
+    fmt::{Display, Formatter},
+    mem::size_of,
+};
 
 use bytemuck::{Pod, Zeroable};
 use jito_bytemuck::{
-    types::{PodBool, PodU16, PodU64},
+    types::{PodU16, PodU64},
     AccountDeserialize, Discriminator,
 };
 use shank::{ShankAccount, ShankType};
@@ -72,71 +75,45 @@ impl fmt::Display for WeatherStatus {
     }
 }
 
-/// Represents a ballot with a weather status
-#[derive(Debug, Clone, Copy, Zeroable, ShankType, Pod)]
+/// Represents a ballot
+#[derive(Debug, Default, Clone, Copy, Zeroable, ShankType, Pod, PartialEq, Eq)]
 #[repr(C)]
 pub struct Ballot {
-    /// The weather status value
-    weather_status: u8,
-    /// Whether the ballot is valid
-    is_valid: PodBool,
+    /// The merkle root representing the MetaMerkleTree
+    merkle_root: [u8; 32],
+    /// SHA256 hash of JSON snapshot
+    snapshot_hash: [u8; 32],
 }
 
-impl PartialEq for Ballot {
-    fn eq(&self, other: &Self) -> bool {
-        if !self.is_valid() || !other.is_valid() {
-            return false;
-        }
-        self.weather_status == other.weather_status
-    }
-}
-
-impl Eq for Ballot {}
-
-impl Default for Ballot {
-    fn default() -> Self {
-        Self {
-            weather_status: WeatherStatus::default() as u8,
-            is_valid: PodBool::from(false),
-        }
-    }
-}
-
-impl std::fmt::Display for Ballot {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Ballot {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "{}",
-            WeatherStatus::from_u8(self.weather_status).unwrap_or("Invalid")
+            "Ballot {{ merkle_root: {}, snapshot_hash: {} }}",
+            hex::encode(self.merkle_root),
+            hex::encode(self.snapshot_hash),
         )
     }
 }
 
 impl Ballot {
-    pub fn new(weather_status: u8) -> Self {
-        let mut ballot = Self {
-            weather_status,
-            is_valid: PodBool::from(false),
-        };
-
-        // Only valid if it matches a WeatherStatus variant
-        if weather_status <= WeatherStatus::Rainy as u8 {
-            ballot.is_valid = PodBool::from(true);
+    pub fn new(merkle_root: [u8; 32], snapshot_hash: [u8; 32]) -> Self {
+        Self {
+            merkle_root,
+            snapshot_hash,
         }
-
-        ballot
     }
 
-    pub const fn weather_status(&self) -> u8 {
-        self.weather_status
+    pub const fn merkle_root(&self) -> [u8; 32] {
+        self.merkle_root
     }
 
-    pub fn status(&self) -> Option<&'static str> {
-        WeatherStatus::from_u8(self.weather_status)
+    pub const fn snapshot_hash(&self) -> [u8; 32] {
+        self.snapshot_hash
     }
 
     pub fn is_valid(&self) -> bool {
-        self.is_valid.into()
+        self.merkle_root != [0; 32] && self.snapshot_hash != [0; 32]
     }
 }
 
@@ -593,7 +570,8 @@ impl BallotBox {
     /// Only allows setting a ballot that was previously voted on
     pub fn set_tie_breaker_ballot(
         &mut self,
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         current_epoch: u64,
         epochs_before_stall: u64,
     ) -> Result<(), NCNProgramError> {
@@ -612,12 +590,10 @@ impl BallotBox {
             return Err(NCNProgramError::VotingNotFinalized);
         }
 
-        // Validate weather status
-        if weather_status > WeatherStatus::Rainy as u8 {
+        let finalized_ballot = Ballot::new(merkle_root, snapshot_hash);
+        if !finalized_ballot.is_valid() {
             return Err(NCNProgramError::BadBallot);
         }
-
-        let finalized_ballot = Ballot::new(weather_status);
 
         // Check that the ballot is one of the existing options
         if !self.has_ballot(&finalized_ballot) {
@@ -710,7 +686,7 @@ impl fmt::Display for BallotBox {
 
 #[cfg(test)]
 mod tests {
-    use solana_program::msg;
+    use solana_program::{hash::hash, msg};
 
     use crate::utils::assert_ncn_program_error;
 
@@ -747,7 +723,7 @@ mod tests {
         let stake_weights = StakeWeights::new(1000);
         let valid_slots_after_consensus = 10;
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
-        let ballot = Ballot::new(WeatherStatus::Sunny as u8);
+        let ballot = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
 
         // Test initial cast vote
         ballot_box
@@ -786,7 +762,7 @@ mod tests {
         }
 
         // Test that operator cannot vote again
-        let new_ballot = Ballot::new(WeatherStatus::Cloudy as u8);
+        let new_ballot = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
         let new_slot = current_slot + 1;
         let result = ballot_box.cast_vote(
             &operator,
@@ -847,7 +823,8 @@ mod tests {
 
         // Create a new ballot box and set a winning ballot
         let mut ballot_box = BallotBox::new(&Pubkey::default(), 0, 0, 0);
-        let expected_ballot = Ballot::new(WeatherStatus::Cloudy as u8);
+        let expected_ballot = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
+
         ballot_box.set_winning_ballot(&expected_ballot);
 
         // Test with winning ballot set
@@ -866,7 +843,7 @@ mod tests {
         let epoch = 1;
         let valid_slots_after_consensus = 10;
         let mut ballot_box = BallotBox::new(&Pubkey::default(), epoch, 0, current_slot);
-        let ballot = Ballot::new(WeatherStatus::Sunny as u8);
+        let ballot = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
         let stake_weights = StakeWeights::new(1000);
 
         // Fill up all operator vote slots (MAX_OPERATORS = 256)
@@ -901,7 +878,7 @@ mod tests {
     #[test]
     fn test_increment_or_create_ballot_tally() {
         let mut ballot_box = BallotBox::new(&Pubkey::new_unique(), 1, 1, 1);
-        let ballot = Ballot::new(WeatherStatus::Sunny as u8);
+        let ballot = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
         let stake_weights = StakeWeights::new(100);
 
         // Test creating new ballot tally
@@ -929,7 +906,7 @@ mod tests {
         assert_eq!(*ballot_box.ballot_tallies[0].ballot(), ballot);
 
         // Test creating second ballot tally
-        let ballot2 = Ballot::new(WeatherStatus::Cloudy as u8);
+        let ballot2 = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
         let tally_index = ballot_box
             .increment_or_create_ballot_tally(&ballot2, &stake_weights)
             .unwrap();
@@ -952,8 +929,7 @@ mod tests {
         let full_stake_weights = StakeWeights::new(1000);
         let total_stake_weight: u128 = 1000;
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
-        let ballot = Ballot::new(WeatherStatus::Sunny as u8);
-
+        let ballot = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
         // Test no consensus when below threshold
         ballot_box
             .increment_or_create_ballot_tally(&ballot, &half_stake_weights)
@@ -986,7 +962,7 @@ mod tests {
         );
 
         // Consensus remains after additional votes
-        let ballot2 = Ballot::new(WeatherStatus::Sunny as u8);
+        let ballot2 = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
         ballot_box
             .increment_or_create_ballot_tally(&ballot2, &full_stake_weights)
             .unwrap();
@@ -1002,9 +978,9 @@ mod tests {
 
         // Test with multiple competing ballots
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
-        let ballot1 = Ballot::new(WeatherStatus::Sunny as u8);
-        let ballot2 = Ballot::new(WeatherStatus::Cloudy as u8);
-        let ballot3 = Ballot::new(WeatherStatus::Rainy as u8);
+        let ballot1 = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
+        let ballot2 = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
+        let ballot3 = Ballot::new(hash(b"root3").to_bytes(), hash(b"snapshot3").to_bytes());
 
         ballot_box
             .increment_or_create_ballot_tally(&ballot1, &quarter_stake_weights)
@@ -1047,7 +1023,7 @@ mod tests {
         let operator1 = Pubkey::new_unique();
 
         let stake_weights = StakeWeights::new(stake_weight_per_operator);
-        let ballot1 = Ballot::new(99);
+        let ballot1 = Ballot::new([0; 32], hash(b"snapshot1").to_bytes());
 
         // Operator 1 votes for ballot1 initially
         let result = ballot_box.cast_vote(
@@ -1076,9 +1052,8 @@ mod tests {
         let operator3 = Pubkey::new_unique();
 
         let stake_weights = StakeWeights::new(stake_weight_per_operator);
-        let ballot1 = Ballot::new(WeatherStatus::Sunny as u8);
-        let ballot2 = Ballot::new(WeatherStatus::Cloudy as u8);
-
+        let ballot1 = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
+        let ballot2 = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
         // Operator 1 votes for ballot1 initially
         ballot_box
             .cast_vote(
@@ -1141,8 +1116,8 @@ mod tests {
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
 
         // Create some initial ballots
-        let ballot1 = Ballot::new(WeatherStatus::Sunny as u8);
-        let ballot2 = Ballot::new(WeatherStatus::Cloudy as u8);
+        let ballot1 = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
+        let ballot2 = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
         let stake_weights = StakeWeights::new(100);
         let double_stake_weights = StakeWeights::new(200);
 
@@ -1159,7 +1134,8 @@ mod tests {
 
         assert_eq!(
             ballot_box.set_tie_breaker_ballot(
-                WeatherStatus::Sunny as u8,
+                hash(b"root1").to_bytes(),
+                hash(b"snapshot1").to_bytes(),
                 current_epoch,
                 epochs_before_stall,
             ),
@@ -1169,7 +1145,8 @@ mod tests {
         // Test setting tie breaker with invalid weather status
         assert_eq!(
             ballot_box.set_tie_breaker_ballot(
-                (WeatherStatus::Rainy as u8) + 1,
+                [0; 32],
+                hash(b"snapshot1").to_bytes(),
                 current_epoch + epochs_before_stall,
                 epochs_before_stall,
             ),
@@ -1179,7 +1156,8 @@ mod tests {
         // Test setting tie breaker with non-existent ballot
         assert_eq!(
             ballot_box.set_tie_breaker_ballot(
-                WeatherStatus::Rainy as u8,
+                hash(b"root1").to_bytes(),
+                hash(b"snapshot5").to_bytes(),
                 current_epoch + epochs_before_stall,
                 epochs_before_stall,
             ),
@@ -1190,7 +1168,8 @@ mod tests {
         let current_epoch = epoch + epochs_before_stall;
         ballot_box
             .set_tie_breaker_ballot(
-                WeatherStatus::Sunny as u8,
+                hash(b"root1").to_bytes(),
+                hash(b"snapshot1").to_bytes(),
                 current_epoch,
                 epochs_before_stall,
             )
@@ -1210,7 +1189,7 @@ mod tests {
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
 
         // First vote should succeed
-        let ballot1 = Ballot::new(WeatherStatus::Sunny as u8);
+        let ballot1 = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
         ballot_box
             .cast_vote(
                 &operator,
@@ -1247,7 +1226,7 @@ mod tests {
         }
 
         // Second vote should fail
-        let ballot2 = Ballot::new(WeatherStatus::Cloudy as u8);
+        let ballot2 = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
         let result = ballot_box.cast_vote(
             &operator,
             &ballot2,
@@ -1290,6 +1269,8 @@ mod tests {
 
 #[cfg(test)]
 mod zero_stake_tests {
+    use solana_program::hash::hash;
+
     use super::*;
 
     #[test]
@@ -1301,7 +1282,7 @@ mod zero_stake_tests {
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
 
         // Create ballots and operators
-        let ballot = Ballot::new(WeatherStatus::default() as u8);
+        let ballot = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
 
         let zero_stake_operator = Pubkey::new_unique();
         let zero_stake = StakeWeights::new(0);
@@ -1345,7 +1326,7 @@ mod zero_stake_tests {
         let valid_slots_after_consensus = 100;
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
 
-        let ballot = Ballot::new(WeatherStatus::default() as u8);
+        let ballot = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
 
         // Create multiple zero stake operators
         let num_zero_stake = 5;
@@ -1431,8 +1412,8 @@ mod zero_stake_tests {
         let valid_slots_after_consensus = 100;
         let mut ballot_box = BallotBox::new(&ncn, epoch, 0, current_slot);
 
-        let ballot1 = Ballot::new(WeatherStatus::Sunny as u8);
-        let ballot2 = Ballot::new(WeatherStatus::Cloudy as u8);
+        let ballot1 = Ballot::new(hash(b"root1").to_bytes(), hash(b"snapshot1").to_bytes());
+        let ballot2 = Ballot::new(hash(b"root2").to_bytes(), hash(b"snapshot2").to_bytes());
 
         // Create mix of zero and normal stake operators
         let zero_stake_operator = Pubkey::new_unique();

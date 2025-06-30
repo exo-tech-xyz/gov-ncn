@@ -26,6 +26,7 @@ spl-associated-token-account = { workspace = true }
 spl-math = { workspace = true }
 spl-token = { workspace = true }
 thiserror = { workspace = true }
+hex = "0.4"
 
 [dev-dependencies]
 assert_matches = { workspace = true }
