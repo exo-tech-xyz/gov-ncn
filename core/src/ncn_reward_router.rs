@@ -1028,14 +1028,10 @@ impl NCNRewardRouterRewards {
 
 #[cfg(test)]
 mod tests {
-    use solana_program::pubkey::Pubkey;
+    use solana_program::{hash::hash, pubkey::Pubkey};
 
     use super::*;
-    use crate::{
-        ballot_box::{Ballot, WeatherStatus},
-        stake_weight::StakeWeights,
-        utils::assert_ncn_program_error,
-    };
+    use crate::{ballot_box::Ballot, stake_weight::StakeWeights, utils::assert_ncn_program_error};
 
     const TEST_EPOCH: u64 = 1;
     const TEST_CURRENT_SLOT: u64 = 100;
@@ -1050,9 +1046,14 @@ mod tests {
         BallotBox::new(&ncn, epoch, bump, current_slot)
     }
 
-    pub fn cast_test_vote(ballot_box: &mut BallotBox, stake_weight: u128, weather_status: u8) {
+    pub fn cast_test_vote(
+        ballot_box: &mut BallotBox,
+        stake_weight: u128,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
+    ) {
         let operator = Pubkey::new_unique();
-        let ballot = Ballot::new(weather_status);
+        let ballot = Ballot::new(merkle_root, snapshot_hash);
         let stake_weights = StakeWeights::snapshot(stake_weight).unwrap();
 
         ballot_box
@@ -1338,7 +1339,12 @@ mod tests {
         let (ballot_box, operators) = {
             let mut ballot_box = get_test_ballot_box();
             for _ in 0..NUM_OPERATORS {
-                cast_test_vote(&mut ballot_box, 200, WeatherStatus::Sunny as u8);
+                cast_test_vote(
+                    &mut ballot_box,
+                    200,
+                    hash(b"root1").to_bytes(),
+                    hash(b"snapshot1").to_bytes(),
+                );
             }
             let operators = get_test_operators(&ballot_box);
             let total_stake_weights = get_test_total_stake_weights(&ballot_box);
@@ -1377,10 +1383,20 @@ mod tests {
         let (ballot_box, operators) = {
             let mut ballot_box = get_test_ballot_box();
             for _ in 0..NUM_CORRECT_OPERATORS {
-                cast_test_vote(&mut ballot_box, 200, WeatherStatus::Sunny as u8);
+                cast_test_vote(
+                    &mut ballot_box,
+                    200,
+                    hash(b"root1").to_bytes(),
+                    hash(b"snapshot1").to_bytes(),
+                );
             }
             for _ in 0..NUM_WRONG_OPERATORS {
-                cast_test_vote(&mut ballot_box, 200, WeatherStatus::Cloudy as u8);
+                cast_test_vote(
+                    &mut ballot_box,
+                    200,
+                    hash(b"root2").to_bytes(),
+                    hash(b"snapshot2").to_bytes(),
+                );
             }
             let operators = get_test_operators(&ballot_box);
             let total_stake_weights = get_test_total_stake_weights(&ballot_box);
@@ -1433,7 +1449,12 @@ mod tests {
             let mut ballot_box = get_test_ballot_box();
 
             for _ in 0..256 {
-                cast_test_vote(&mut ballot_box, 200, WeatherStatus::Sunny as u8);
+                cast_test_vote(
+                    &mut ballot_box,
+                    200,
+                    hash(b"root1").to_bytes(),
+                    hash(b"snapshot1").to_bytes(),
+                );
             }
 
             let total_stake_weights = get_test_total_stake_weights(&ballot_box);
@@ -1474,7 +1495,12 @@ mod tests {
             let mut ballot_box = get_test_ballot_box();
 
             for _ in 0..256 {
-                cast_test_vote(&mut ballot_box, 200, WeatherStatus::Sunny as u8);
+                cast_test_vote(
+                    &mut ballot_box,
+                    200,
+                    hash(b"root1").to_bytes(),
+                    hash(b"snapshot1").to_bytes(),
+                );
             }
 
             let total_stake_weights = get_test_total_stake_weights(&ballot_box);
@@ -1520,7 +1546,12 @@ mod tests {
             let mut ballot_box = get_test_ballot_box();
 
             for _ in 0..256 {
-                cast_test_vote(&mut ballot_box, 200, WeatherStatus::Sunny as u8);
+                cast_test_vote(
+                    &mut ballot_box,
+                    200,
+                    hash(b"root1").to_bytes(),
+                    hash(b"snapshot1").to_bytes(),
+                );
             }
 
             let total_stake_weights = get_test_total_stake_weights(&ballot_box);
