@@ -39,8 +39,10 @@ pub struct ConsensusResult {
     consensus_slot: PodU64,
     /// Bump seed for the PDA
     bump: u8,
-    /// The winning weather status that reached consensus
-    weather_status: u8,
+    /// The winning merkle root representing the MetaMerkleTree
+    merkle_root: [u8; 32],
+    /// The winning SHA256 hash of JSON snapshot
+    snapshot_hash: [u8; 32],
 }
 
 impl Discriminator for ConsensusResult {
@@ -62,7 +64,8 @@ impl ConsensusResult {
             ncn: *ncn,
             epoch: PodU64::from(epoch),
             bump,
-            weather_status: 0,
+            merkle_root: [0; 32],
+            snapshot_hash: [0; 32],
             vote_weight: PodU64::from(0),
             total_vote_weight: PodU64::from(0),
             consensus_slot: PodU64::from(0),
@@ -132,8 +135,12 @@ impl ConsensusResult {
         &self.ncn
     }
 
-    pub fn weather_status(&self) -> u8 {
-        self.weather_status
+    pub fn merkle_root(&self) -> [u8; 32] {
+        self.merkle_root
+    }
+
+    pub fn snapshot_hash(&self) -> [u8; 32] {
+        self.snapshot_hash
     }
 
     pub fn vote_weight(&self) -> u64 {
@@ -151,7 +158,8 @@ impl ConsensusResult {
     /// Records the consensus result data when consensus is reached
     ///
     /// # Arguments
-    /// * `weather_status` - The winning weather status
+    /// * `merkle_root` - The winning merkle_root
+    /// * `snapshot_hash` - The winning snapshot_hash
     /// * `vote_weight` - The vote weight that supported the winning status
     /// * `total_vote_weight` - The total vote weight
     /// * `consensus_slot` - The slot when consensus was reached
@@ -160,7 +168,8 @@ impl ConsensusResult {
     /// * `Result<(), NCNProgramError>` - Ok if successful
     pub fn record_consensus(
         &mut self,
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         vote_weight: u64,
         total_vote_weight: u64,
         consensus_slot: u64,
@@ -168,7 +177,8 @@ impl ConsensusResult {
         if self.is_consensus_reached() {
             self.vote_weight = PodU64::from(vote_weight);
         } else {
-            self.weather_status = weather_status;
+            self.merkle_root = merkle_root;
+            self.snapshot_hash = snapshot_hash;
             self.vote_weight = PodU64::from(vote_weight);
             self.total_vote_weight = PodU64::from(total_vote_weight);
             self.consensus_slot = PodU64::from(consensus_slot);
@@ -190,7 +200,8 @@ impl ConsensusResult {
         self.ncn = *ncn;
         self.epoch = PodU64::from(epoch);
         self.bump = bump;
-        self.weather_status = 0;
+        self.merkle_root = [0; 32];
+        self.snapshot_hash = [0; 32];
         self.vote_weight = PodU64::from(0);
         self.total_vote_weight = PodU64::from(0);
         self.consensus_slot = PodU64::from(0);
@@ -204,7 +215,8 @@ impl fmt::Display for ConsensusResult {
         writeln!(f, "ConsensusResult {{")?;
         writeln!(f, "  ncn: {},", self.ncn)?;
         writeln!(f, "  epoch: {},", self.epoch())?;
-        writeln!(f, "  weather_status: {},", self.weather_status)?;
+        writeln!(f, "  merkle_root: {},", hex::encode(self.merkle_root))?;
+        writeln!(f, "  snapshot_hash: {},", hex::encode(self.snapshot_hash))?;
         writeln!(f, "  vote_weight: {},", self.vote_weight())?;
         writeln!(f, "  total_vote_weight: {},", self.total_vote_weight())?;
         writeln!(f, "  consensus_slot: {},", self.consensus_slot())?;
@@ -223,17 +235,19 @@ mod tests {
         let mut consensus_result = ConsensusResult::new(&Pubkey::new_unique(), 123, 255);
 
         assert!(!consensus_result.is_consensus_reached());
-        assert_eq!(consensus_result.weather_status(), 0);
+        assert_eq!(consensus_result.merkle_root(), [0; 32]);
+        assert_eq!(consensus_result.snapshot_hash(), [0; 32]);
         assert_eq!(consensus_result.vote_weight(), 0);
         assert_eq!(consensus_result.total_vote_weight(), 0);
         assert_eq!(consensus_result.consensus_slot(), 0);
 
         consensus_result
-            .record_consensus(2, 1000, 2000, 5000)
+            .record_consensus([1; 32], [2; 32], 1000, 2000, 5000)
             .unwrap();
 
         assert!(consensus_result.is_consensus_reached());
-        assert_eq!(consensus_result.weather_status(), 2);
+        assert_eq!(consensus_result.merkle_root(), [1; 32]);
+        assert_eq!(consensus_result.snapshot_hash(), [2; 32]);
         assert_eq!(consensus_result.vote_weight(), 1000);
         assert_eq!(consensus_result.total_vote_weight(), 2000);
         assert_eq!(consensus_result.consensus_slot(), 5000);
