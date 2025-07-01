@@ -111,7 +111,8 @@ impl Default for CastVoteInstructionData {
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CastVoteInstructionArgs {
-    pub weather_status: u8,
+    pub merkle_root: [u8; 32],
+    pub snapshot_hash: [u8; 32],
     pub epoch: u64,
 }
 
@@ -139,7 +140,8 @@ pub struct CastVoteBuilder {
     operator: Option<solana_program::pubkey::Pubkey>,
     operator_voter: Option<solana_program::pubkey::Pubkey>,
     consensus_result: Option<solana_program::pubkey::Pubkey>,
-    weather_status: Option<u8>,
+    merkle_root: Option<[u8; 32]>,
+    snapshot_hash: Option<[u8; 32]>,
     epoch: Option<u64>,
     __remaining_accounts: Vec<solana_program::instruction::AccountMeta>,
 }
@@ -200,8 +202,13 @@ impl CastVoteBuilder {
         self
     }
     #[inline(always)]
-    pub fn weather_status(&mut self, weather_status: u8) -> &mut Self {
-        self.weather_status = Some(weather_status);
+    pub fn merkle_root(&mut self, merkle_root: [u8; 32]) -> &mut Self {
+        self.merkle_root = Some(merkle_root);
+        self
+    }
+    #[inline(always)]
+    pub fn snapshot_hash(&mut self, snapshot_hash: [u8; 32]) -> &mut Self {
+        self.snapshot_hash = Some(snapshot_hash);
         self
     }
     #[inline(always)]
@@ -243,10 +250,11 @@ impl CastVoteBuilder {
             consensus_result: self.consensus_result.expect("consensus_result is not set"),
         };
         let args = CastVoteInstructionArgs {
-            weather_status: self
-                .weather_status
+            merkle_root: self.merkle_root.clone().expect("merkle_root is not set"),
+            snapshot_hash: self
+                .snapshot_hash
                 .clone()
-                .expect("weather_status is not set"),
+                .expect("snapshot_hash is not set"),
             epoch: self.epoch.clone().expect("epoch is not set"),
         };
 
@@ -461,7 +469,8 @@ impl<'a, 'b> CastVoteCpiBuilder<'a, 'b> {
             operator: None,
             operator_voter: None,
             consensus_result: None,
-            weather_status: None,
+            merkle_root: None,
+            snapshot_hash: None,
             epoch: None,
             __remaining_accounts: Vec::new(),
         });
@@ -537,8 +546,13 @@ impl<'a, 'b> CastVoteCpiBuilder<'a, 'b> {
         self
     }
     #[inline(always)]
-    pub fn weather_status(&mut self, weather_status: u8) -> &mut Self {
-        self.instruction.weather_status = Some(weather_status);
+    pub fn merkle_root(&mut self, merkle_root: [u8; 32]) -> &mut Self {
+        self.instruction.merkle_root = Some(merkle_root);
+        self
+    }
+    #[inline(always)]
+    pub fn snapshot_hash(&mut self, snapshot_hash: [u8; 32]) -> &mut Self {
+        self.instruction.snapshot_hash = Some(snapshot_hash);
         self
     }
     #[inline(always)]
@@ -588,11 +602,16 @@ impl<'a, 'b> CastVoteCpiBuilder<'a, 'b> {
         signers_seeds: &[&[&[u8]]],
     ) -> solana_program::entrypoint::ProgramResult {
         let args = CastVoteInstructionArgs {
-            weather_status: self
+            merkle_root: self
                 .instruction
-                .weather_status
+                .merkle_root
                 .clone()
-                .expect("weather_status is not set"),
+                .expect("merkle_root is not set"),
+            snapshot_hash: self
+                .instruction
+                .snapshot_hash
+                .clone()
+                .expect("snapshot_hash is not set"),
             epoch: self.instruction.epoch.clone().expect("epoch is not set"),
         };
         let instruction = CastVoteCpi {
@@ -651,7 +670,8 @@ struct CastVoteCpiBuilderInstruction<'a, 'b> {
     operator: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     operator_voter: Option<&'b solana_program::account_info::AccountInfo<'a>>,
     consensus_result: Option<&'b solana_program::account_info::AccountInfo<'a>>,
-    weather_status: Option<u8>,
+    merkle_root: Option<[u8; 32]>,
+    snapshot_hash: Option<[u8; 32]>,
     epoch: Option<u64>,
     /// Additional instruction accounts `(AccountInfo, is_writable, is_signer)`.
     __remaining_accounts: Vec<(

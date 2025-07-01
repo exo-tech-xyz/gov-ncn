@@ -8,32 +8,36 @@
 
 import {
   combineCodec,
-  getBoolDecoder,
-  getBoolEncoder,
+  fixDecoderSize,
+  fixEncoderSize,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
-  getU8Decoder,
-  getU8Encoder,
   type Codec,
   type Decoder,
   type Encoder,
+  type ReadonlyUint8Array,
 } from '@solana/web3.js';
 
-export type Ballot = { weatherStatus: number; isValid: number };
+export type Ballot = {
+  merkleRoot: ReadonlyUint8Array;
+  snapshotHash: ReadonlyUint8Array;
+};
 
 export type BallotArgs = Ballot;
 
 export function getBallotEncoder(): Encoder<BallotArgs> {
   return getStructEncoder([
-    ['weatherStatus', getU8Encoder()],
-    ['isValid', getBoolEncoder()],
+    ['merkleRoot', fixEncoderSize(getBytesEncoder(), 32)],
+    ['snapshotHash', fixEncoderSize(getBytesEncoder(), 32)],
   ]);
 }
 
 export function getBallotDecoder(): Decoder<Ballot> {
   return getStructDecoder([
-    ['weatherStatus', getU8Decoder()],
-    ['isValid', getBoolDecoder()],
+    ['merkleRoot', fixDecoderSize(getBytesDecoder(), 32)],
+    ['snapshotHash', fixDecoderSize(getBytesDecoder(), 32)],
   ]);
 }
 

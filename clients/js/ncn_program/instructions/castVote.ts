@@ -8,6 +8,10 @@
 
 import {
   combineCodec,
+  fixDecoderSize,
+  fixEncoderSize,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -26,6 +30,7 @@ import {
   type IInstructionWithData,
   type ReadonlyAccount,
   type ReadonlySignerAccount,
+  type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/web3.js';
@@ -86,12 +91,14 @@ export type CastVoteInstruction<
 
 export type CastVoteInstructionData = {
   discriminator: number;
-  weatherStatus: number;
+  merkleRoot: ReadonlyUint8Array;
+  snapshotHash: ReadonlyUint8Array;
   epoch: bigint;
 };
 
 export type CastVoteInstructionDataArgs = {
-  weatherStatus: number;
+  merkleRoot: ReadonlyUint8Array;
+  snapshotHash: ReadonlyUint8Array;
   epoch: number | bigint;
 };
 
@@ -99,7 +106,8 @@ export function getCastVoteInstructionDataEncoder(): Encoder<CastVoteInstruction
   return transformEncoder(
     getStructEncoder([
       ['discriminator', getU8Encoder()],
-      ['weatherStatus', getU8Encoder()],
+      ['merkleRoot', fixEncoderSize(getBytesEncoder(), 32)],
+      ['snapshotHash', fixEncoderSize(getBytesEncoder(), 32)],
       ['epoch', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: CAST_VOTE_DISCRIMINATOR })
@@ -109,7 +117,8 @@ export function getCastVoteInstructionDataEncoder(): Encoder<CastVoteInstruction
 export function getCastVoteInstructionDataDecoder(): Decoder<CastVoteInstructionData> {
   return getStructDecoder([
     ['discriminator', getU8Decoder()],
-    ['weatherStatus', getU8Decoder()],
+    ['merkleRoot', fixDecoderSize(getBytesDecoder(), 32)],
+    ['snapshotHash', fixDecoderSize(getBytesDecoder(), 32)],
     ['epoch', getU64Decoder()],
   ]);
 }
@@ -144,7 +153,8 @@ export type CastVoteInput<
   operator: Address<TAccountOperator>;
   operatorVoter: TransactionSigner<TAccountOperatorVoter>;
   consensusResult: Address<TAccountConsensusResult>;
-  weatherStatus: CastVoteInstructionDataArgs['weatherStatus'];
+  merkleRoot: CastVoteInstructionDataArgs['merkleRoot'];
+  snapshotHash: CastVoteInstructionDataArgs['snapshotHash'];
   epoch: CastVoteInstructionDataArgs['epoch'];
 };
 

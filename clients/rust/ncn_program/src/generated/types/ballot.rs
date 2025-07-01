@@ -11,6 +11,6 @@ use borsh::BorshSerialize;
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Ballot {
-    pub weather_status: u8,
-    pub is_valid: bool,
+    pub merkle_root: [u8; 32],
+    pub snapshot_hash: [u8; 32],
 }

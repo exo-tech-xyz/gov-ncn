@@ -8,6 +8,10 @@
 
 import {
   combineCodec,
+  fixDecoderSize,
+  fixEncoderSize,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -26,6 +30,7 @@ import {
   type IInstructionWithData,
   type ReadonlyAccount,
   type ReadonlySignerAccount,
+  type ReadonlyUint8Array,
   type TransactionSigner,
   type WritableAccount,
 } from '@solana/web3.js';
@@ -70,12 +75,14 @@ export type AdminSetTieBreakerInstruction<
 
 export type AdminSetTieBreakerInstructionData = {
   discriminator: number;
-  weatherStatus: number;
+  merkleRoot: ReadonlyUint8Array;
+  snapshotHash: ReadonlyUint8Array;
   epoch: bigint;
 };
 
 export type AdminSetTieBreakerInstructionDataArgs = {
-  weatherStatus: number;
+  merkleRoot: ReadonlyUint8Array;
+  snapshotHash: ReadonlyUint8Array;
   epoch: number | bigint;
 };
 
@@ -83,7 +90,8 @@ export function getAdminSetTieBreakerInstructionDataEncoder(): Encoder<AdminSetT
   return transformEncoder(
     getStructEncoder([
       ['discriminator', getU8Encoder()],
-      ['weatherStatus', getU8Encoder()],
+      ['merkleRoot', fixEncoderSize(getBytesEncoder(), 32)],
+      ['snapshotHash', fixEncoderSize(getBytesEncoder(), 32)],
       ['epoch', getU64Encoder()],
     ]),
     (value) => ({
@@ -96,7 +104,8 @@ export function getAdminSetTieBreakerInstructionDataEncoder(): Encoder<AdminSetT
 export function getAdminSetTieBreakerInstructionDataDecoder(): Decoder<AdminSetTieBreakerInstructionData> {
   return getStructDecoder([
     ['discriminator', getU8Decoder()],
-    ['weatherStatus', getU8Decoder()],
+    ['merkleRoot', fixDecoderSize(getBytesDecoder(), 32)],
+    ['snapshotHash', fixDecoderSize(getBytesDecoder(), 32)],
     ['epoch', getU64Decoder()],
   ]);
 }
@@ -123,7 +132,8 @@ export type AdminSetTieBreakerInput<
   ballotBox: Address<TAccountBallotBox>;
   ncn: Address<TAccountNcn>;
   tieBreakerAdmin: TransactionSigner<TAccountTieBreakerAdmin>;
-  weatherStatus: AdminSetTieBreakerInstructionDataArgs['weatherStatus'];
+  merkleRoot: AdminSetTieBreakerInstructionDataArgs['merkleRoot'];
+  snapshotHash: AdminSetTieBreakerInstructionDataArgs['snapshotHash'];
   epoch: AdminSetTieBreakerInstructionDataArgs['epoch'];
 };
 

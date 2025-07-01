@@ -13,8 +13,12 @@ import {
   decodeAccount,
   fetchEncodedAccount,
   fetchEncodedAccounts,
+  fixDecoderSize,
+  fixEncoderSize,
   getAddressDecoder,
   getAddressEncoder,
+  getBytesDecoder,
+  getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -31,6 +35,7 @@ import {
   type FetchAccountsConfig,
   type MaybeAccount,
   type MaybeEncodedAccount,
+  type ReadonlyUint8Array,
 } from '@solana/web3.js';
 
 export type ConsensusResult = {
@@ -41,7 +46,8 @@ export type ConsensusResult = {
   totalVoteWeight: bigint;
   consensusSlot: bigint;
   bump: number;
-  weatherStatus: number;
+  merkleRoot: ReadonlyUint8Array;
+  snapshotHash: ReadonlyUint8Array;
 };
 
 export type ConsensusResultArgs = {
@@ -52,7 +58,8 @@ export type ConsensusResultArgs = {
   totalVoteWeight: number | bigint;
   consensusSlot: number | bigint;
   bump: number;
-  weatherStatus: number;
+  merkleRoot: ReadonlyUint8Array;
+  snapshotHash: ReadonlyUint8Array;
 };
 
 export function getConsensusResultEncoder(): Encoder<ConsensusResultArgs> {
@@ -64,7 +71,8 @@ export function getConsensusResultEncoder(): Encoder<ConsensusResultArgs> {
     ['totalVoteWeight', getU64Encoder()],
     ['consensusSlot', getU64Encoder()],
     ['bump', getU8Encoder()],
-    ['weatherStatus', getU8Encoder()],
+    ['merkleRoot', fixEncoderSize(getBytesEncoder(), 32)],
+    ['snapshotHash', fixEncoderSize(getBytesEncoder(), 32)],
   ]);
 }
 
@@ -77,7 +85,8 @@ export function getConsensusResultDecoder(): Decoder<ConsensusResult> {
     ['totalVoteWeight', getU64Decoder()],
     ['consensusSlot', getU64Decoder()],
     ['bump', getU8Decoder()],
-    ['weatherStatus', getU8Decoder()],
+    ['merkleRoot', fixDecoderSize(getBytesDecoder(), 32)],
+    ['snapshotHash', fixDecoderSize(getBytesDecoder(), 32)],
   ]);
 }
 

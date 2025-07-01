@@ -51,7 +51,7 @@ use ncn_program_client::{
 };
 use ncn_program_core::{
     account_payer::AccountPayer,
-    ballot_box::{BallotBox, WeatherStatus},
+    ballot_box::BallotBox,
     config::Config as NCNProgramConfig,
     consensus_result::ConsensusResult,
     constants::MAX_REALLOC_BYTES,
@@ -65,7 +65,6 @@ use ncn_program_core::{
 };
 use solana_client::rpc_config::RpcSendTransactionConfig;
 
-use serde::Deserialize;
 use solana_sdk::{
     compute_budget::ComputeBudgetInstruction,
     instruction::Instruction,
@@ -266,8 +265,8 @@ pub async fn admin_set_tie_breaker(
         .ballot_box(ballot_box)
         .ncn(ncn)
         .tie_breaker_admin(keypair.pubkey())
-        // .merkle_root(merkle_root)
-        // .snapshot_hash(snapshot_hash)
+        .merkle_root(merkle_root)
+        .snapshot_hash(snapshot_hash)
         .epoch(epoch)
         .instruction();
 
@@ -1008,8 +1007,8 @@ pub async fn operator_cast_vote(
         .operator(operator)
         .operator_voter(keypair.pubkey())
         .consensus_result(consensus_result)
-        // .merkle_root(merkle_root)
-        // .snapshot_hash(snapshot_hash)
+        .merkle_root(merkle_root)
+        .snapshot_hash(snapshot_hash)
         .epoch(epoch)
         .instruction();
 

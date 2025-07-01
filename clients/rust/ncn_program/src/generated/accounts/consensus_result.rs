@@ -23,7 +23,8 @@ pub struct ConsensusResult {
     pub total_vote_weight: u64,
     pub consensus_slot: u64,
     pub bump: u8,
-    pub weather_status: u8,
+    pub merkle_root: [u8; 32],
+    pub snapshot_hash: [u8; 32],
 }
 
 impl ConsensusResult {
