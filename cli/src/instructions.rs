@@ -246,7 +246,8 @@ pub async fn admin_set_weight_with_st_mint(
 pub async fn admin_set_tie_breaker(
     handler: &CliHandler,
     epoch: u64,
-    weather_status: u8,
+    merkle_root: [u8; 32],
+    snapshot_hash: [u8; 32],
 ) -> Result<()> {
     let keypair = handler.keypair()?;
 
@@ -265,7 +266,8 @@ pub async fn admin_set_tie_breaker(
         .ballot_box(ballot_box)
         .ncn(ncn)
         .tie_breaker_admin(keypair.pubkey())
-        .weather_status(weather_status)
+        // .merkle_root(merkle_root)
+        // .snapshot_hash(snapshot_hash)
         .epoch(epoch)
         .instruction();
 
@@ -276,7 +278,8 @@ pub async fn admin_set_tie_breaker(
         "Set Tie Breaker",
         &[
             format!("NCN: {:?}", ncn),
-            format!("weather_status: {:?}", weather_status),
+            format!("merkle_root: {:?}", merkle_root),
+            format!("snapshot_hash: {:?}", snapshot_hash),
             format!("Epoch: {:?}", epoch),
         ],
     )
@@ -971,7 +974,8 @@ pub async fn operator_cast_vote(
     handler: &CliHandler,
     operator: &Pubkey,
     epoch: u64,
-    weather_status: u8,
+    merkle_root: [u8; 32],
+    snapshot_hash: [u8; 32],
 ) -> Result<()> {
     let keypair = handler.keypair()?;
 
@@ -1004,7 +1008,8 @@ pub async fn operator_cast_vote(
         .operator(operator)
         .operator_voter(keypair.pubkey())
         .consensus_result(consensus_result)
-        .weather_status(weather_status)
+        // .merkle_root(merkle_root)
+        // .snapshot_hash(snapshot_hash)
         .epoch(epoch)
         .instruction();
 
@@ -1016,10 +1021,8 @@ pub async fn operator_cast_vote(
         &[
             format!("NCN: {:?}", ncn),
             format!("Operator: {:?}", operator),
-            format!(
-                "Weather Status: {:?}",
-                WeatherStatus::from_u8(weather_status)
-            ),
+            format!("Merkle Root: {:?}", merkle_root),
+            format!("Snapshot Hash: {:?}", snapshot_hash),
             format!("Epoch: {:?}", epoch),
         ],
     )
@@ -1457,35 +1460,7 @@ pub async fn crank_snapshot(handler: &CliHandler, epoch: u64) -> Result<()> {
     Ok(())
 }
 
-#[derive(Deserialize, Debug)]
-struct WeatherInfo {
-    main: String,
-}
-
-#[derive(Deserialize, Debug)]
-struct WeatherResponse {
-    weather: Vec<WeatherInfo>,
-}
-
-async fn get_weather_status(api_key: &str, city_name: &str) -> Result<u8> {
-    let url = format!(
-        "http://api.openweathermap.org/data/2.5/weather?q={}&appid={}&units=metric",
-        city_name, api_key
-    );
-
-    let response = reqwest::get(&url).await?.json::<WeatherResponse>().await?;
-
-    if let Some(weather_condition) = response.weather.get(0) {
-        match weather_condition.main.as_str() {
-            "Clear" => Ok(0),                                      // Sunny
-            "Rain" | "Snow" | "Drizzle" | "Thunderstorm" => Ok(2), // Raining/Snowing
-            _ => Ok(1),                                            // Anything else
-        }
-    } else {
-        Ok(1) // Default to "Anything else" if no weather info is available
-    }
-}
-
+// TODO: Remove this
 /// Casts a vote for an operator based on the current weather in Solana Beach
 ///
 /// # Arguments
@@ -1495,25 +1470,25 @@ async fn get_weather_status(api_key: &str, city_name: &str) -> Result<u8> {
 ///
 /// # Returns
 /// * `Result<u8>` - Weather value that was voted (0:Sunny, 1:Other, 2:Rain/Snow)
-pub async fn operator_crank_vote(
-    handler: &CliHandler,
-    epoch: u64,
-    operator: &Pubkey,
-) -> Result<u8> {
-    // Get API key for weather service
-    let api_key = handler.open_weather_api_key()?;
+// pub async fn operator_crank_vote(
+//     handler: &CliHandler,
+//     epoch: u64,
+//     operator: &Pubkey,
+// ) -> Result<u8> {
+//     // Get API key for weather service
+//     let api_key = handler.open_weather_api_key()?;
 
-    // Fetch current weather status from OpenWeather API
-    let weather_value = get_weather_status(&api_key, "Solana Beach").await?;
-    info!(
-        "Current weather in Solana Beach (0:Sunny, 1:Other, 2:Rain/Snow): {}",
-        weather_value
-    );
+//     // Fetch current weather status from OpenWeather API
+//     let weather_value = get_weather_status(&api_key, "Solana Beach").await?;
+//     info!(
+//         "Current weather in Solana Beach (0:Sunny, 1:Other, 2:Rain/Snow): {}",
+//         weather_value
+//     );
 
-    // Cast the vote with the weather value
-    operator_cast_vote(handler, operator, epoch, weather_value).await?;
-    Ok(weather_value)
-}
+//     // Cast the vote with the weather value
+//     operator_cast_vote(handler, operator, epoch, weather_value).await?;
+//     Ok(weather_value)
+// }
 
 /// Logs detailed information about an operator's vote and ballot box state
 ///
@@ -1595,7 +1570,8 @@ pub async fn operator_crank_post_vote(
 #[allow(clippy::large_stack_frames)]
 pub async fn crank_test_vote(handler: &CliHandler, epoch: u64) -> Result<()> {
     let voter = handler.keypair()?.pubkey();
-    let weather_status = 0;
+    let merkle_root = [0; 32];
+    let snapshot_hash = [0; 32];
     let operators = get_all_operators_in_ncn(handler).await?;
 
     for operator in operators.iter() {
@@ -1605,7 +1581,7 @@ pub async fn crank_test_vote(handler: &CliHandler, epoch: u64) -> Result<()> {
             continue;
         }
 
-        let result = operator_cast_vote(handler, operator, epoch, weather_status).await;
+        let result = operator_cast_vote(handler, operator, epoch, merkle_root, snapshot_hash).await;
 
         if let Err(err) = result {
             log::error!(

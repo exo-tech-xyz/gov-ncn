@@ -509,7 +509,11 @@ pub async fn emit_epoch_metrics_ballot_box(handler: &CliHandler, epoch: u64) -> 
 
                 let ballot_index = operator_vote.ballot_index();
                 let ballot_tally = ballot_box.ballot_tallies()[ballot_index as usize];
-                let vote = format!("{:?}", ballot_tally.ballot().status());
+                let vote = format!(
+                    "merkle_root: {:?}, snapshot_hash: {:?}",
+                    ballot_tally.ballot().merkle_root(),
+                    ballot_tally.ballot().snapshot_hash(),
+                );
 
                 emit_epoch_datapoint!(
                     "ncn-program-keeper-ee-ballot-box-votes",
@@ -545,7 +549,11 @@ pub async fn emit_epoch_metrics_ballot_box(handler: &CliHandler, epoch: u64) -> 
                     continue;
                 }
 
-                let vote = format!("{:?}", tally.ballot().status());
+                let vote = format!(
+                    "merkle_root: {:?}, snapshot_hash: {:?}",
+                    tally.ballot().merkle_root(),
+                    tally.ballot().snapshot_hash(),
+                );
 
                 emit_epoch_datapoint!(
                     "ncn-program-keeper-ee-ballot-box-tally",
@@ -574,7 +582,11 @@ pub async fn emit_epoch_metrics_ballot_box(handler: &CliHandler, epoch: u64) -> 
                 if ballot_box.has_winning_ballot() {
                     let ballot_tally = ballot_box.get_winning_ballot_tally().unwrap();
                     (
-                        format!("{:?}", ballot_tally.ballot().status()),
+                        format!(
+                            "merkle_root: {:?}, snapshot_hash: {:?}",
+                            ballot_tally.ballot().merkle_root(),
+                            ballot_tally.ballot().snapshot_hash(),
+                        ),
                         ballot_tally.stake_weights().stake_weight(),
                         ballot_tally.tally(),
                     )

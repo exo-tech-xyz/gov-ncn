@@ -23,7 +23,6 @@ use crate::{
         set_epoch_weights, snapshot_vault_operator_delegation, update_all_vaults_in_network,
     },
     keeper::keeper_loop::startup_ncn_keeper,
-    operator::operator_loop::startup_operator_loop,
 };
 use anyhow::{anyhow, Result};
 use base64::{engine::general_purpose, Engine};
@@ -37,6 +36,7 @@ use solana_client::{
 use solana_rpc_client::nonblocking::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig,
+    msg,
     native_token::lamports_to_sol,
     pubkey::Pubkey,
     signature::{read_keypair_file, Keypair},
@@ -184,9 +184,11 @@ impl CliHandler {
                 error_timeout_ms,
                 operator,
             } => {
-                let operator = Pubkey::from_str(&operator)
-                    .map_err(|e| anyhow!("Error parsing operator: {}", e))?;
-                startup_operator_loop(self, loop_timeout_ms, error_timeout_ms, operator).await
+                // let operator = Pubkey::from_str(&operator)
+                //     .map_err(|e| anyhow!("Error parsing operator: {}", e))?;
+                // startup_operator_loop(self, loop_timeout_ms, error_timeout_ms, operator).await
+                msg!("Operation not supported");
+                Ok(())
             }
             // Cranks
             ProgramCommand::CrankRegisterVaults {} => crank_register_vaults(self).await,
@@ -242,9 +244,10 @@ impl CliHandler {
                     Pubkey::from_str(&vault).map_err(|e| anyhow!("Error parsing vault: {}", e))?;
                 admin_set_weight(self, &vault, self.epoch, weight).await
             }
-            ProgramCommand::AdminSetTieBreaker { weather_status } => {
-                admin_set_tie_breaker(self, self.epoch, weather_status).await
-            }
+            ProgramCommand::AdminSetTieBreaker {
+                merkle_root,
+                snapshot_hash,
+            } => admin_set_tie_breaker(self, self.epoch, merkle_root, snapshot_hash).await,
             ProgramCommand::AdminSetParameters {
                 epochs_before_stall,
                 epochs_after_consensus_before_close,
@@ -311,12 +314,13 @@ impl CliHandler {
             ProgramCommand::CreateBallotBox {} => create_ballot_box(self, self.epoch).await,
             ProgramCommand::OperatorCastVote {
                 operator,
-                weather_status,
+                merkle_root,
+                snapshot_hash,
             } => {
                 let operator = Pubkey::from_str(&operator)
                     .map_err(|e| anyhow!("Error parsing operator: {}", e))?;
 
-                operator_cast_vote(self, &operator, self.epoch, weather_status).await
+                operator_cast_vote(self, &operator, self.epoch, merkle_root, snapshot_hash).await
             }
 
             // Getters

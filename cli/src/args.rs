@@ -3,6 +3,16 @@ use std::fmt;
 use clap::{Parser, Subcommand, ValueEnum};
 use solana_sdk::clock::DEFAULT_SLOTS_PER_EPOCH;
 
+fn parse_hex_32(s: &str) -> Result<[u8; 32], String> {
+    let bytes = hex::decode(s).map_err(|e| format!("Invalid hex: {}", e))?;
+    if bytes.len() != 32 {
+        return Err("Expected 64 hex characters (32 bytes)".into());
+    }
+    let mut arr = [0u8; 32];
+    arr.copy_from_slice(&bytes);
+    Ok(arr)
+}
+
 #[derive(Parser)]
 #[command(author, version, about = "A CLI for creating and managing the ncn program", long_about = None)]
 pub struct Args {
@@ -191,8 +201,10 @@ pub enum ProgramCommand {
         weight: u128,
     },
     AdminSetTieBreaker {
-        #[arg(long, help = "tie breaker for voting")]
-        weather_status: u8,
+        #[arg(long, value_parser = parse_hex_32, help = "Merkle Root of MetaMerkleTree as 64-char hex")]
+        merkle_root: [u8; 32],
+        #[arg(long, value_parser = parse_hex_32, help = "Hash of the Snapshot JSON as 64-char hex")]
+        snapshot_hash: [u8; 32],
     },
     AdminSetParameters {
         #[arg(long, help = "Epochs before tie breaker can set consensus")]
@@ -246,8 +258,10 @@ pub enum ProgramCommand {
     OperatorCastVote {
         #[arg(long, help = "Operator address")]
         operator: String,
-        #[arg(long, help = "weather status at solana beach")]
-        weather_status: u8,
+        #[arg(long, value_parser = parse_hex_32, help = "Merkle Root of MetaMerkleTree as 64-char hex")]
+        merkle_root: [u8; 32],
+        #[arg(long, value_parser = parse_hex_32, help = "Hash of the Snapshot JSON as 64-char hex")]
+        snapshot_hash: [u8; 32],
     },
 
     CreateNCNRewardRouter,

@@ -700,8 +700,22 @@
       ],
       "args": [
         {
-          "name": "weatherStatus",
-          "type": "u8"
+          "name": "merkleRoot",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "snapshotHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
         },
         {
           "name": "epoch",
@@ -1426,8 +1440,22 @@
       ],
       "args": [
         {
-          "name": "weatherStatus",
-          "type": "u8"
+          "name": "merkleRoot",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
+        },
+        {
+          "name": "snapshotHash",
+          "type": {
+            "array": [
+              "u8",
+              32
+            ]
+          }
         },
         {
           "name": "epoch",
@@ -1729,8 +1757,22 @@
             "type": "u8"
           },
           {
-            "name": "weatherStatus",
-            "type": "u8"
+            "name": "merkleRoot",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "snapshotHash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           }
         ]
       }
@@ -2337,13 +2379,21 @@
         "kind": "struct",
         "fields": [
           {
-            "name": "weatherStatus",
-            "type": "u8"
+            "name": "merkleRoot",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
           },
           {
-            "name": "isValid",
+            "name": "snapshotHash",
             "type": {
-              "defined": "PodBool"
+              "array": [
+                "u8",
+                32
+              ]
             }
           }
         ]

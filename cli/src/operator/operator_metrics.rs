@@ -167,11 +167,18 @@ pub async fn emit_ncn_metrics_operator_post_vote(
         ),
         (
             "ballot-value",
-            operator_vote.map_or(-1, |v| {
-                let ballot = ballot_box.ballot_tallies()[v.ballot_index() as usize];
-                ballot.ballot().weather_status() as i64
-            }),
-            i64
+            operator_vote.map_or_else(
+                || format!("{}:{}", hex::encode([0u8; 32]), hex::encode([0u8; 32])),
+                |v| {
+                    let ballot = ballot_box.ballot_tallies()[v.ballot_index() as usize].ballot();
+                    format!(
+                        "{}:{}",
+                        hex::encode(ballot.merkle_root()),
+                        hex::encode(ballot.snapshot_hash())
+                    )
+                },
+            ),
+            String
         ),
         (
             "consensus-reached",
@@ -182,9 +189,13 @@ pub async fn emit_ncn_metrics_operator_post_vote(
             "winning-ballot",
             ballot_box
                 .get_winning_ballot()
-                .unwrap_or(&Ballot::default())
-                .weather_status() as i64,
-            i64
+                .map(|b| format!(
+                    "{}:{}",
+                    hex::encode(b.merkle_root()),
+                    hex::encode(b.snapshot_hash())
+                ))
+                .unwrap(),
+            String
         )
     );
 
