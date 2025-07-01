@@ -13,7 +13,8 @@ use solana_program::{
 /// Allows the tie-breaker admin to resolve stalled votes by selecting a winning ballot.
 ///
 /// ### Parameters:
-/// - `weather_status`: Status code for the tie-breaking vote (0=Sunny, 1=Cloudy, 2=Rainy)
+/// - `merkle_root`: Merkle Root in bytes
+/// - `snapshot_hash`: Snapshot Hash in bytes
 /// - `epoch`: The target epoch
 ///
 /// ### Accounts:
@@ -25,7 +26,8 @@ use solana_program::{
 pub fn process_admin_set_tie_breaker(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    weather_status: u8,
+    merkle_root: [u8; 32],
+    snapshot_hash: [u8; 32],
     epoch: u64,
 ) -> ProgramResult {
     let [epoch_state, ncn_config, ballot_box, ncn, tie_breaker_admin] = accounts else {
@@ -54,11 +56,13 @@ pub fn process_admin_set_tie_breaker(
     let current_epoch = clock.epoch;
 
     msg!(
-        "Setting tie breaker ballot with weather status: {}",
-        weather_status
+        "Setting tie breaker ballot with merkle_root: {:?}, snapshot_hash: {:?}",
+        merkle_root,
+        snapshot_hash
     );
     ballot_box_account.set_tie_breaker_ballot(
-        weather_status,
+        merkle_root,
+        snapshot_hash,
         current_epoch,
         ncn_config.epochs_before_stall(),
     )?;

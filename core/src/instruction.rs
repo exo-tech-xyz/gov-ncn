@@ -201,7 +201,8 @@ pub enum NCNProgramInstruction {
     #[account(7, signer, name = "operator_voter")]
     #[account(8, writable, name = "consensus_result")]
     CastVote {
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         epoch: u64,
     },
 
@@ -383,7 +384,8 @@ pub enum NCNProgramInstruction {
     #[account(3, name = "ncn")]
     #[account(4, signer, name = "tie_breaker_admin")]
     AdminSetTieBreaker {
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         epoch: u64,
     },
 

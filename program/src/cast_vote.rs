@@ -21,7 +21,8 @@ use solana_program::{
 /// Allows an operator to cast a vote on weather status.
 ///
 /// ### Parameters:
-/// - `weather_status`: Status code for the vote (0=Sunny, 1=Cloudy, 2=Rainy)
+/// - `merkle_root`: Merkle Root in bytes
+/// - `snapshot_hash`: Snapshot Hash in bytes
 /// - `epoch`: The target epoch
 ///
 /// ### Accounts:
@@ -37,7 +38,8 @@ use solana_program::{
 pub fn process_cast_vote(
     program_id: &Pubkey,
     accounts: &[AccountInfo],
-    weather_status: u8,
+    merkle_root: [u8; 32],
+    snapshot_hash: [u8; 32],
     epoch: u64,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
@@ -122,7 +124,7 @@ pub fn process_cast_vote(
     let slot = Clock::get()?.slot;
     msg!("Current slot: {}", slot);
 
-    let ballot = Ballot::new(weather_status);
+    let ballot = Ballot::new(merkle_root, snapshot_hash);
 
     ballot_box.cast_vote(
         operator.key,
@@ -143,9 +145,10 @@ pub fn process_cast_vote(
     if ballot_box.is_consensus_reached() {
         let winning_ballot_tally = ballot_box.get_winning_ballot_tally()?;
         msg!(
-            "Consensus reached for epoch {} with ballot weather status: {}, stake weight: {}",
+            "Consensus reached for epoch {} with ballot merkle_root: {:?}, snapshot_hash: {:?}, stake weight: {}",
             epoch,
-            winning_ballot_tally.ballot().weather_status(),
+            winning_ballot_tally.ballot().merkle_root(),
+            winning_ballot_tally.ballot().snapshot_hash(),
             winning_ballot_tally.stake_weights().stake_weight()
         );
 
@@ -155,7 +158,8 @@ pub fn process_cast_vote(
             ConsensusResult::try_from_slice_unchecked_mut(&mut consensus_result_data)?;
 
         consensus_result_account.record_consensus(
-            winning_ballot_tally.ballot().weather_status(),
+            winning_ballot_tally.ballot().merkle_root(),
+            winning_ballot_tally.ballot().snapshot_hash(),
             winning_ballot_tally.stake_weights().stake_weight() as u64,
             total_stake_weights.stake_weight() as u64,
             slot,

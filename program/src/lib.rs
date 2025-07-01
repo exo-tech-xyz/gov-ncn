@@ -176,11 +176,12 @@ pub fn process_instruction(
             process_realloc_ballot_box(program_id, accounts, epoch)
         }
         NCNProgramInstruction::CastVote {
-            weather_status,
+            merkle_root,
+            snapshot_hash,
             epoch,
         } => {
             msg!("Instruction: CastVote");
-            process_cast_vote(program_id, accounts, weather_status, epoch)
+            process_cast_vote(program_id, accounts, merkle_root, snapshot_hash, epoch)
         }
 
         // ---------------------------------------------------- //
@@ -215,11 +216,12 @@ pub fn process_instruction(
             process_admin_set_new_admin(program_id, accounts, role)
         }
         NCNProgramInstruction::AdminSetTieBreaker {
-            weather_status,
+            merkle_root,
+            snapshot_hash,
             epoch,
         } => {
             msg!("Instruction: AdminSetTieBreaker");
-            process_admin_set_tie_breaker(program_id, accounts, weather_status, epoch)
+            process_admin_set_tie_breaker(program_id, accounts, merkle_root, snapshot_hash, epoch)
         }
         NCNProgramInstruction::AdminSetWeight {
             st_mint,
