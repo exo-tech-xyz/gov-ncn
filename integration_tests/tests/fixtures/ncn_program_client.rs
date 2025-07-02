@@ -1031,7 +1031,8 @@ impl NCNProgramClient {
         ncn: Pubkey,
         operator: Pubkey,
         operator_admin: &Keypair,
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         epoch: u64,
     ) -> Result<(), TestError> {
         let ncn_config = NcnConfig::find_program_address(&ncn_program::id(), &ncn).0;
@@ -1067,7 +1068,8 @@ impl NCNProgramClient {
             operator_snapshot,
             operator,
             operator_admin,
-            weather_status,
+            merkle_root,
+            snapshot_hash,
             epoch,
         )
         .await
@@ -1084,7 +1086,8 @@ impl NCNProgramClient {
         operator_snapshot: Pubkey,
         operator: Pubkey,
         operator_voter: &Keypair,
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         epoch: u64,
     ) -> Result<(), TestError> {
         let epoch_state = EpochState::find_program_address(&ncn_program::id(), &ncn, epoch).0;
@@ -1102,7 +1105,8 @@ impl NCNProgramClient {
             .operator_snapshot(operator_snapshot)
             .operator(operator)
             .operator_voter(operator_voter.pubkey())
-            .weather_status(weather_status)
+            .merkle_root(merkle_root)
+            .snapshot_hash(snapshot_hash)
             .consensus_result(consensus_result)
             .epoch(epoch)
             .instruction();
@@ -1121,7 +1125,8 @@ impl NCNProgramClient {
     pub async fn do_admin_set_tie_breaker(
         &mut self,
         ncn: Pubkey,
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         epoch: u64,
     ) -> Result<(), TestError> {
         let ncn_config = NcnConfig::find_program_address(&ncn_program::id(), &ncn).0;
@@ -1134,7 +1139,8 @@ impl NCNProgramClient {
             ballot_box,
             ncn,
             tie_breaker_admin,
-            weather_status,
+            merkle_root,
+            snapshot_hash,
             epoch,
         )
         .await
@@ -1147,7 +1153,8 @@ impl NCNProgramClient {
         ballot_box: Pubkey,
         ncn: Pubkey,
         tie_breaker_admin: Pubkey,
-        weather_status: u8,
+        merkle_root: [u8; 32],
+        snapshot_hash: [u8; 32],
         epoch: u64,
     ) -> Result<(), TestError> {
         let epoch_state = EpochState::find_program_address(&ncn_program::id(), &ncn, epoch).0;
@@ -1158,7 +1165,8 @@ impl NCNProgramClient {
             .ballot_box(ballot_box)
             .ncn(ncn)
             .tie_breaker_admin(tie_breaker_admin)
-            .weather_status(weather_status)
+            .merkle_root(merkle_root)
+            .snapshot_hash(snapshot_hash)
             .epoch(epoch)
             .instruction();
 

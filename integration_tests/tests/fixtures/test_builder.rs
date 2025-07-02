@@ -3,7 +3,7 @@ use std::fmt::{Debug, Formatter};
 use jito_restaking_core::{config::Config, ncn_vault_ticket::NcnVaultTicket};
 use ncn_program_core::{
     account_payer::AccountPayer,
-    ballot_box::{BallotBox, WeatherStatus},
+    ballot_box::BallotBox,
     constants::WEIGHT,
     epoch_snapshot::{EpochSnapshot, OperatorSnapshot},
     epoch_state::EpochState,
@@ -648,7 +648,7 @@ impl TestBuilder {
         Ok(())
     }
 
-    /// Casts votes (default WeatherStatus) for all active operators in the TestNcn for the current epoch.
+    /// Casts votes (same valid vote) for all active operators in the TestNcn for the current epoch.
     // 11 - Cast all votes for active operators
     pub async fn cast_votes_for_test_ncn(&mut self, test_ncn: &TestNcn) -> TestResult<()> {
         let mut ncn_program_client = self.ncn_program_client();
@@ -656,8 +656,6 @@ impl TestBuilder {
         let clock = self.clock().await;
         let epoch = clock.epoch;
         let ncn = test_ncn.ncn_root.ncn_pubkey;
-
-        let weather_status = WeatherStatus::default() as u8;
 
         for operator_root in test_ncn.operators.iter() {
             let operator = operator_root.operator_pubkey;
@@ -671,7 +669,8 @@ impl TestBuilder {
                         ncn,
                         operator,
                         &operator_root.operator_admin,
-                        weather_status,
+                        [1; 32],
+                        [1; 32],
                         epoch,
                     )
                     .await?;
