@@ -2,7 +2,10 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use shank::ShankInstruction;
 use solana_program::pubkey::Pubkey;
 
-use crate::config::ConfigAdminRole;
+use crate::{
+    config::ConfigAdminRole,
+    merkle::{MetaMerkleLeaf, StakeMerkleLeaf},
+};
 
 /// Represents all instructions supported by the NCN Program
 /// Each instruction specifies the accounts it requires and any parameters
@@ -418,5 +421,17 @@ pub enum NCNProgramInstruction {
     AdminSetStMint{
         st_mint: Pubkey,
         weight: Option<u128>,
+    },
+
+    // ---------------------------------------------------- //
+    //                        VERIFY                         //
+    // ---------------------------------------------------- //
+    /// Verify node exists in merkle root of ConsensusResult
+    #[account(0, name = "consensus_result")]
+    VerifyMerkle {
+        meta_merkle_proof: Vec<[u8; 32]>,
+        meta_merkle_leaf: MetaMerkleLeaf,
+        stake_merkle_proof: Option<Vec<[u8; 32]>>,
+        stake_merkle_leaf: Option<StakeMerkleLeaf>,
     },
 }

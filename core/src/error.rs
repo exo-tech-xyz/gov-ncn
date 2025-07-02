@@ -187,6 +187,11 @@ pub enum NCNProgramError {
     EpochIsClosingDown,
     #[error("Marker exists")]
     MarkerExists,
+
+    #[error("Invalid Proof")]
+    InvalidProof,
+    #[error("Invalid VerifyMerkle Inputs")]
+    InvalidVerifyMerkleInputs,
 }
 
 impl<T> DecodeError<T> for NCNProgramError {

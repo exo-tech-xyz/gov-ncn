@@ -1592,6 +1592,60 @@
         "type": "u8",
         "value": 30
       }
+    },
+    {
+      "name": "VerifyMerkle",
+      "accounts": [
+        {
+          "name": "consensusResult",
+          "isMut": false,
+          "isSigner": false
+        }
+      ],
+      "args": [
+        {
+          "name": "metaMerkleProof",
+          "type": {
+            "vec": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        },
+        {
+          "name": "metaMerkleLeaf",
+          "type": {
+            "defined": "MetaMerkleLeaf"
+          }
+        },
+        {
+          "name": "stakeMerkleProof",
+          "type": {
+            "option": {
+              "vec": {
+                "array": [
+                  "u8",
+                  32
+                ]
+              }
+            }
+          }
+        },
+        {
+          "name": "stakeMerkleLeaf",
+          "type": {
+            "option": {
+              "defined": "StakeMerkleLeaf"
+            }
+          }
+        }
+      ],
+      "discriminant": {
+        "type": "u8",
+        "value": 31
+      }
     }
   ],
   "accounts": [
@@ -2620,6 +2674,113 @@
       }
     },
     {
+      "name": "MetaMerkleSnapshot",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "root",
+            "type": {
+              "defined": "BorshHash"
+            }
+          },
+          {
+            "name": "leafBundles",
+            "type": {
+              "vec": {
+                "defined": "MetaMerkleLeafBundle"
+              }
+            }
+          },
+          {
+            "name": "slot",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MetaMerkleLeafBundle",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "metaMerkleLeaf",
+            "type": {
+              "defined": "MetaMerkleLeaf"
+            }
+          },
+          {
+            "name": "stakeMerkleLeaves",
+            "type": {
+              "vec": {
+                "defined": "StakeMerkleLeaf"
+              }
+            }
+          },
+          {
+            "name": "proof",
+            "type": {
+              "option": {
+                "vec": {
+                  "array": [
+                    "u8",
+                    32
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "StakeMerkleLeaf",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "votingWallet",
+            "type": "publicKey"
+          },
+          {
+            "name": "stakeAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "activeStake",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MetaMerkleLeaf",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "votingWallet",
+            "type": "publicKey"
+          },
+          {
+            "name": "voteAccount",
+            "type": "publicKey"
+          },
+          {
+            "name": "stakeMerkleRoot",
+            "type": {
+              "defined": "BorshHash"
+            }
+          },
+          {
+            "name": "activeStake",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
       "name": "OperatorVaultRewardRoute",
       "type": {
         "kind": "struct",
@@ -3237,6 +3398,16 @@
       "code": 8784,
       "name": "MarkerExists",
       "msg": "Marker exists"
+    },
+    {
+      "code": 8785,
+      "name": "InvalidProof",
+      "msg": "Invalid Proof"
+    },
+    {
+      "code": 8786,
+      "name": "InvalidVerifyMerkleInputs",
+      "msg": "Invalid VerifyMerkle Inputs"
     }
   ],
   "metadata": {

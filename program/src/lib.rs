@@ -29,6 +29,7 @@ mod route_ncn_rewards;
 mod route_operator_vault_rewards;
 mod set_epoch_weights;
 mod snapshot_vault_operator_delegation;
+mod verify_merkle;
 
 use admin_set_new_admin::process_admin_set_new_admin;
 use borsh::BorshDeserialize;
@@ -69,6 +70,7 @@ use crate::{
     route_operator_vault_rewards::process_route_operator_vault_rewards,
     set_epoch_weights::process_set_epoch_weights,
     snapshot_vault_operator_delegation::process_snapshot_vault_operator_delegation,
+    verify_merkle::process_verify_merkle,
 };
 
 declare_id!("5SiK283D1iFSqHvr8vbNWCBjbjRXeEYS79CLax7nosPf");
@@ -288,6 +290,23 @@ pub fn process_instruction(
         NCNProgramInstruction::DistributeVaultRewards { epoch } => {
             msg!("Instruction: DistributeVaultRewards");
             process_distribute_vault_rewards(program_id, accounts, epoch)
+        }
+
+        NCNProgramInstruction::VerifyMerkle {
+            meta_merkle_proof,
+            meta_merkle_leaf,
+            stake_merkle_proof,
+            stake_merkle_leaf,
+        } => {
+            msg!("Instruction: VerifyMerkle");
+            process_verify_merkle(
+                program_id,
+                accounts,
+                meta_merkle_proof,
+                meta_merkle_leaf,
+                stake_merkle_proof,
+                stake_merkle_leaf,
+            )
         }
     }
 }
