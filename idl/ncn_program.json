@@ -2681,7 +2681,10 @@
           {
             "name": "root",
             "type": {
-              "defined": "BorshHash"
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {
@@ -2770,7 +2773,10 @@
           {
             "name": "stakeMerkleRoot",
             "type": {
-              "defined": "BorshHash"
+              "array": [
+                "u8",
+                32
+              ]
             }
           },
           {

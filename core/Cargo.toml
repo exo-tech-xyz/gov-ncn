@@ -25,7 +25,6 @@ solana-program = { workspace = true }
 spl-associated-token-account = { workspace = true }
 spl-math = { workspace = true }
 spl-token = { workspace = true }
-solana-sdk = { workspace = true }
 thiserror = { workspace = true }
 hex = { workspace = true }
 

@@ -1,5 +1,5 @@
 use borsh::{BorshDeserialize, BorshSerialize};
-use solana_sdk::{
+use solana_program::{
     entrypoint::ProgramResult,
     hash::{hashv, Hash},
     pubkey::Pubkey,
