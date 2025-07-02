@@ -6,6 +6,7 @@ mod tests {
         constants::{MAX_OPERATORS, WEIGHT},
         error::NCNProgramError,
     };
+    use rand::Rng;
     use solana_sdk::{hash::hash, msg, signature::Keypair, signer::Signer};
 
     use crate::fixtures::{
@@ -150,6 +151,7 @@ mod tests {
         Ok(())
     }
 
+    // TODO: Failing with OperatorAlreadyVoted
     #[ignore = "long test"]
     #[tokio::test]
     async fn test_cast_vote_max_cu() -> TestResult<()> {
@@ -174,25 +176,23 @@ mod tests {
             .do_full_initialize_ballot_box(ncn, epoch)
             .await?;
 
-        let winning_merkle = hash(b"root1").to_bytes();
-        let winning_snapshot = hash(b"snapshot1").to_bytes();
-
         for operator in test_ncn.operators {
             let operator_admin = &operator.operator_admin;
+            let i = rand::rng().random_range(0..=2);
 
             ncn_program_client
                 .do_cast_vote(
                     ncn,
                     operator.operator_pubkey,
                     operator_admin,
-                    winning_merkle,
-                    winning_snapshot,
+                    [i; 32],
+                    [i; 32],
                     epoch,
                 )
                 .await?;
 
             let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
-            assert!(ballot_box.has_ballot(&Ballot::new(winning_merkle, winning_snapshot)));
+            assert!(ballot_box.has_ballot(&Ballot::new([i; 32], [i; 32])));
         }
 
         let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
