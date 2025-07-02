@@ -196,6 +196,10 @@ export const NCN_PROGRAM_ERROR__INVALID_N_C_N_FEE_WALLET = 0x224e; // 8782
 export const NCN_PROGRAM_ERROR__EPOCH_IS_CLOSING_DOWN = 0x224f; // 8783
 /** MarkerExists: Marker exists */
 export const NCN_PROGRAM_ERROR__MARKER_EXISTS = 0x2250; // 8784
+/** InvalidProof: Invalid Proof */
+export const NCN_PROGRAM_ERROR__INVALID_PROOF = 0x2251; // 8785
+/** InvalidVerifyMerkleInputs: Invalid VerifyMerkle Inputs */
+export const NCN_PROGRAM_ERROR__INVALID_VERIFY_MERKLE_INPUTS = 0x2252; // 8786
 
 export type NcnProgramError =
   | typeof NCN_PROGRAM_ERROR__ACCOUNT_ALREADY_INITIALIZED
@@ -246,7 +250,9 @@ export type NcnProgramError =
   | typeof NCN_PROGRAM_ERROR__INVALID_NCN_FEE_GROUP
   | typeof NCN_PROGRAM_ERROR__INVALID_N_C_N_FEE_WALLET
   | typeof NCN_PROGRAM_ERROR__INVALID_OPERATOR_VOTER
+  | typeof NCN_PROGRAM_ERROR__INVALID_PROOF
   | typeof NCN_PROGRAM_ERROR__INVALID_SLOTS_AFTER_CONSENSUS
+  | typeof NCN_PROGRAM_ERROR__INVALID_VERIFY_MERKLE_INPUTS
   | typeof NCN_PROGRAM_ERROR__MARKER_EXISTS
   | typeof NCN_PROGRAM_ERROR__MINT_ENTRY_NOT_FOUND
   | typeof NCN_PROGRAM_ERROR__MINT_IN_TABLE
@@ -341,7 +347,9 @@ if (process.env.NODE_ENV !== 'production') {
     [NCN_PROGRAM_ERROR__INVALID_NCN_FEE_GROUP]: `Not a valid NCN fee group`,
     [NCN_PROGRAM_ERROR__INVALID_N_C_N_FEE_WALLET]: `Invalid NCN Fee wallet`,
     [NCN_PROGRAM_ERROR__INVALID_OPERATOR_VOTER]: `Operator voter needs to sign its vote`,
+    [NCN_PROGRAM_ERROR__INVALID_PROOF]: `Invalid Proof`,
     [NCN_PROGRAM_ERROR__INVALID_SLOTS_AFTER_CONSENSUS]: `Invalid slots after consensus`,
+    [NCN_PROGRAM_ERROR__INVALID_VERIFY_MERKLE_INPUTS]: `Invalid VerifyMerkle Inputs`,
     [NCN_PROGRAM_ERROR__MARKER_EXISTS]: `Marker exists`,
     [NCN_PROGRAM_ERROR__MINT_ENTRY_NOT_FOUND]: `Mint Entry not found`,
     [NCN_PROGRAM_ERROR__MINT_IN_TABLE]: `Mint is already in the table`,

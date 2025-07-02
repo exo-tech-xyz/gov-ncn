@@ -283,6 +283,12 @@ pub enum NcnProgramError {
     /// 8784 - Marker exists
     #[error("Marker exists")]
     MarkerExists = 0x2250,
+    /// 8785 - Invalid Proof
+    #[error("Invalid Proof")]
+    InvalidProof = 0x2251,
+    /// 8786 - Invalid VerifyMerkle Inputs
+    #[error("Invalid VerifyMerkle Inputs")]
+    InvalidVerifyMerkleInputs = 0x2252,
 }
 
 impl solana_program::program_error::PrintProgramError for NcnProgramError {

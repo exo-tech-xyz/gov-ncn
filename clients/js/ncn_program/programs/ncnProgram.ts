@@ -44,6 +44,7 @@ import {
   type ParsedRouteOperatorVaultRewardsInstruction,
   type ParsedSetEpochWeightsInstruction,
   type ParsedSnapshotVaultOperatorDelegationInstruction,
+  type ParsedVerifyMerkleInstruction,
 } from '../instructions';
 
 export const NCN_PROGRAM_PROGRAM_ADDRESS =
@@ -95,6 +96,7 @@ export enum NcnProgramInstruction {
   AdminSetWeight,
   AdminRegisterStMint,
   AdminSetStMint,
+  VerifyMerkle,
 }
 
 export function identifyNcnProgramInstruction(
@@ -193,6 +195,9 @@ export function identifyNcnProgramInstruction(
   }
   if (containsBytes(data, getU8Encoder().encode(30), 0)) {
     return NcnProgramInstruction.AdminSetStMint;
+  }
+  if (containsBytes(data, getU8Encoder().encode(31), 0)) {
+    return NcnProgramInstruction.VerifyMerkle;
   }
   throw new Error(
     'The provided instruction could not be identified as a ncnProgram instruction.'
@@ -294,4 +299,7 @@ export type ParsedNcnProgramInstruction<
     } & ParsedAdminRegisterStMintInstruction<TProgram>)
   | ({
       instructionType: NcnProgramInstruction.AdminSetStMint;
-    } & ParsedAdminSetStMintInstruction<TProgram>);
+    } & ParsedAdminSetStMintInstruction<TProgram>)
+  | ({
+      instructionType: NcnProgramInstruction.VerifyMerkle;
+    } & ParsedVerifyMerkleInstruction<TProgram>);
