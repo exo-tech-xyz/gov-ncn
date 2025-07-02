@@ -2,12 +2,11 @@
 mod tests {
     use jito_restaking_core::{config::Config, ncn_vault_ticket::NcnVaultTicket};
     use ncn_program_core::{
-        ballot_box::{Ballot, WeatherStatus},
+        ballot_box::Ballot,
         constants::{MAX_OPERATORS, WEIGHT},
         error::NCNProgramError,
     };
-    use rand::Rng;
-    use solana_sdk::{msg, signature::Keypair, signer::Signer};
+    use solana_sdk::{hash::hash, msg, signature::Keypair, signer::Signer};
 
     use crate::fixtures::{
         ncn_program_client::assert_ncn_program_error, test_builder::TestBuilder, TestResult,
@@ -36,17 +35,25 @@ mod tests {
             .do_full_initialize_ballot_box(ncn, epoch)
             .await?;
 
-        let weather_status = WeatherStatus::default() as u8;
+        let winning_merkle = hash(b"root1").to_bytes();
+        let winning_snapshot = hash(b"snapshot1").to_bytes();
 
         let operator_admin = &test_ncn.operators[0].operator_admin;
 
         ncn_program_client
-            .do_cast_vote(ncn, operator, operator_admin, weather_status, epoch)
+            .do_cast_vote(
+                ncn,
+                operator,
+                operator_admin,
+                winning_merkle,
+                winning_snapshot,
+                epoch,
+            )
             .await?;
 
         let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
 
-        assert!(ballot_box.has_ballot(&Ballot::new(weather_status)));
+        assert!(ballot_box.has_ballot(&Ballot::new(winning_merkle, winning_snapshot)));
         assert_eq!(ballot_box.slot_consensus_reached(), slot);
         assert!(ballot_box.is_consensus_reached());
 
@@ -77,21 +84,23 @@ mod tests {
             .await?;
 
         // First vote should succeed
-        let first_weather_status = WeatherStatus::Sunny as u8;
+        let merkle1 = hash(b"root1").to_bytes();
+        let snapshot1 = hash(b"snapshot1").to_bytes();
         ncn_program_client
-            .do_cast_vote(ncn, operator, operator_admin, first_weather_status, epoch)
+            .do_cast_vote(ncn, operator, operator_admin, merkle1, snapshot1, epoch)
             .await?;
 
         // Verify first vote was recorded
         let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
-        assert!(ballot_box.has_ballot(&Ballot::new(first_weather_status)));
+        assert!(ballot_box.has_ballot(&Ballot::new(merkle1, snapshot1)));
         assert_eq!(ballot_box.operators_voted(), 1);
         assert_eq!(ballot_box.unique_ballots(), 1);
 
         // Second vote should fail
-        let second_weather_status = WeatherStatus::Cloudy as u8;
+        let merkle2 = hash(b"root2").to_bytes();
+        let snapshot2 = hash(b"snapshot2").to_bytes();
         let result = ncn_program_client
-            .do_cast_vote(ncn, operator, operator_admin, second_weather_status, epoch)
+            .do_cast_vote(ncn, operator, operator_admin, merkle2, snapshot2, epoch)
             .await;
 
         msg!("result: {:?}", result);
@@ -99,8 +108,8 @@ mod tests {
 
         // Verify ballot box state remains unchanged
         let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
-        assert!(ballot_box.has_ballot(&Ballot::new(first_weather_status)));
-        assert!(!ballot_box.has_ballot(&Ballot::new(second_weather_status)));
+        assert!(ballot_box.has_ballot(&Ballot::new(merkle1, snapshot1)));
+        assert!(!ballot_box.has_ballot(&Ballot::new(merkle2, snapshot2)));
         assert_eq!(ballot_box.operators_voted(), 1);
         assert_eq!(ballot_box.unique_ballots(), 1);
 
@@ -129,12 +138,11 @@ mod tests {
             .do_full_initialize_ballot_box(ncn, epoch)
             .await?;
 
-        let weather_status = 5;
-
         let operator_admin = &test_ncn.operators[0].operator_admin;
 
+        // Vote with invalid root and hash.
         let result = ncn_program_client
-            .do_cast_vote(ncn, operator, operator_admin, weather_status, epoch)
+            .do_cast_vote(ncn, operator, operator_admin, [0; 32], [0; 32], epoch)
             .await;
 
         assert_ncn_program_error(result, NCNProgramError::BadBallot, Some(1));
@@ -166,23 +174,25 @@ mod tests {
             .do_full_initialize_ballot_box(ncn, epoch)
             .await?;
 
+        let winning_merkle = hash(b"root1").to_bytes();
+        let winning_snapshot = hash(b"snapshot1").to_bytes();
+
         for operator in test_ncn.operators {
             let operator_admin = &operator.operator_admin;
-
-            let weather_status = rand::rng().random_range(0..=2);
 
             ncn_program_client
                 .do_cast_vote(
                     ncn,
                     operator.operator_pubkey,
                     operator_admin,
-                    weather_status,
+                    winning_merkle,
+                    winning_snapshot,
                     epoch,
                 )
                 .await?;
 
             let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
-            assert!(ballot_box.has_ballot(&Ballot::new(weather_status)));
+            assert!(ballot_box.has_ballot(&Ballot::new(winning_merkle, winning_snapshot)));
         }
 
         let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
@@ -304,15 +314,14 @@ mod tests {
                 "Zero-delegation operator should have zero stake weight"
             );
 
-            let weather_status = WeatherStatus::Rainy as u8;
-
             // We expect this to fail since the operator has zero delegations
             let result = ncn_program_client
                 .do_cast_vote(
                     ncn_pubkey,
                     zero_delegation_operator.operator_pubkey,
                     &zero_delegation_operator.operator_admin,
-                    weather_status,
+                    hash(b"root1").to_bytes(),
+                    hash(b"root1").to_bytes(),
                     epoch,
                 )
                 .await;

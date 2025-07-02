@@ -3631,6 +3631,7 @@ dependencies = [
  "anchor-lang",
  "borsh 0.10.4",
  "bytemuck",
+ "hex",
  "jito-bytemuck",
  "jito-jsm-core",
  "jito-restaking-core",

@@ -2,8 +2,10 @@
 mod fuzz_tests {
     use crate::fixtures::{test_builder::TestBuilder, TestResult};
     use jito_restaking_core::{config::Config, ncn_vault_ticket::NcnVaultTicket};
-    use ncn_program_core::{ballot_box::WeatherStatus, constants::WEIGHT};
-    use solana_sdk::{msg, native_token::sol_to_lamports, signature::Keypair, signer::Signer};
+    use ncn_program_core::constants::WEIGHT;
+    use solana_sdk::{
+        hash::hash, msg, native_token::sol_to_lamports, signature::Keypair, signer::Signer,
+    };
 
     // Struct to configure mint token parameters for simulation
     struct MintConfig {
@@ -208,9 +210,8 @@ mod fuzz_tests {
             fixture.add_ballot_box_to_test_ncn(&test_ncn).await?;
         }
 
-        // Define which weather status we expect to win in the vote
-        // In this example, operators will vote on a simulated weather status
-        let winning_weather_status = WeatherStatus::Sunny as u8;
+        let winning_merkle = hash(b"root1").to_bytes();
+        let winning_snapshot = hash(b"snapshot1").to_bytes();
 
         // 5. Cast votes from operators
         {
@@ -225,7 +226,8 @@ mod fuzz_tests {
                         ncn_pubkey,
                         operator,
                         &operator_root.operator_admin,
-                        winning_weather_status,
+                        winning_merkle,
+                        winning_snapshot,
                         epoch,
                     )
                     .await?;
@@ -236,8 +238,12 @@ mod fuzz_tests {
             assert!(ballot_box.has_winning_ballot());
             assert!(ballot_box.is_consensus_reached());
             assert_eq!(
-                ballot_box.get_winning_ballot().unwrap().weather_status(),
-                winning_weather_status
+                ballot_box.get_winning_ballot().unwrap().merkle_root(),
+                winning_merkle
+            );
+            assert_eq!(
+                ballot_box.get_winning_ballot().unwrap().snapshot_hash(),
+                winning_snapshot
             );
         }
 
@@ -267,7 +273,8 @@ mod fuzz_tests {
             // Verify consensus_result account exists and has correct values
             assert!(consensus_result.is_consensus_reached());
             assert_eq!(consensus_result.epoch(), epoch);
-            assert_eq!(consensus_result.weather_status(), winning_weather_status);
+            assert_eq!(consensus_result.merkle_root(), winning_merkle);
+            assert_eq!(consensus_result.snapshot_hash(), winning_snapshot);
 
             // Get ballot box to compare values
             let ballot_box = ncn_program_client.get_ballot_box(ncn_pubkey, epoch).await?;
@@ -282,8 +289,9 @@ mod fuzz_tests {
             );
 
             println!(
-                "✅ Consensus Result Verified - Weather Status: {}, Vote Weight: {}, Total Weight: {}",
-                consensus_result.weather_status(),
+                "✅ Consensus Result Verified - Merkle {:?}, Snapshot {:?}, Vote Weight: {}, Total Weight: {}",
+                hex::encode(consensus_result.merkle_root()),
+                hex::encode(consensus_result.snapshot_hash()),
                 consensus_result.vote_weight(),
                 consensus_result.total_vote_weight(),
             );
@@ -308,6 +316,7 @@ mod fuzz_tests {
         Ok(())
     }
 
+    // TODO: Fix issues with reward distribution
     // Test with basic configuration
     // This test runs the core simulation with a standard set of parameters
     #[ignore = "long test"]

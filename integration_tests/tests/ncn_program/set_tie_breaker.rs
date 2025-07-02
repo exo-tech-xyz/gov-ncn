@@ -1,11 +1,8 @@
 #[cfg(test)]
 mod tests {
 
-    use ncn_program_core::{
-        ballot_box::{Ballot, WeatherStatus},
-        constants::DEFAULT_CONSENSUS_REACHED_SLOT,
-    };
-    use solana_sdk::clock::DEFAULT_SLOTS_PER_EPOCH;
+    use ncn_program_core::{ballot_box::Ballot, constants::DEFAULT_CONSENSUS_REACHED_SLOT};
+    use solana_sdk::{clock::DEFAULT_SLOTS_PER_EPOCH, hash::hash};
 
     use crate::fixtures::{test_builder::TestBuilder, TestResult};
 
@@ -28,7 +25,8 @@ mod tests {
             .do_full_initialize_ballot_box(ncn, epoch)
             .await?;
 
-        let weather_status = WeatherStatus::Sunny as u8;
+        let winning_merkle = hash(b"root1").to_bytes();
+        let winning_snapshot = hash(b"snapshot1").to_bytes();
 
         let operator = test_ncn.operators[0].operator_pubkey;
         let operator_admin = &test_ncn.operators[0].operator_admin;
@@ -36,11 +34,18 @@ mod tests {
         // Cast a vote so that this vote is one of the valid options
         // Gets to 50% consensus weight
         ncn_program_client
-            .do_cast_vote(ncn, operator, operator_admin, weather_status, epoch)
+            .do_cast_vote(
+                ncn,
+                operator,
+                operator_admin,
+                winning_merkle,
+                winning_snapshot,
+                epoch,
+            )
             .await?;
 
         let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
-        assert!(ballot_box.has_ballot(&Ballot::new(weather_status)));
+        assert!(ballot_box.has_ballot(&Ballot::new(winning_merkle, winning_snapshot)));
         assert_eq!(
             ballot_box.slot_consensus_reached(),
             DEFAULT_CONSENSUS_REACHED_SLOT
@@ -54,12 +59,12 @@ mod tests {
             .await?;
 
         ncn_program_client
-            .do_admin_set_tie_breaker(ncn, weather_status, epoch)
+            .do_admin_set_tie_breaker(ncn, winning_merkle, winning_snapshot, epoch)
             .await?;
 
         let ballot_box = ncn_program_client.get_ballot_box(ncn, epoch).await?;
 
-        let ballot = Ballot::new(weather_status);
+        let ballot = Ballot::new(winning_merkle, winning_snapshot);
         assert!(ballot_box.has_ballot(&ballot));
         assert_eq!(
             *ballot_box.get_winning_ballot_tally().unwrap().ballot(),
