@@ -5,8 +5,8 @@ use ncn_program_core::{
     merkle::{verify_helper, MetaMerkleLeaf, StakeMerkleLeaf},
 };
 use solana_program::{
-    account_info::AccountInfo, entrypoint::ProgramResult, msg, program_error::ProgramError,
-    pubkey::Pubkey,
+    account_info::AccountInfo, entrypoint::ProgramResult, hash::Hash, msg,
+    program_error::ProgramError, pubkey::Pubkey,
 };
 
 /// Verifies that the Merkle root in `ConsensusResult` is valid given the provided leaves and proofs.
@@ -60,7 +60,7 @@ pub fn process_verify_merkle(
         verify_helper(
             leaf_content,
             proof_vec,
-            meta_merkle_leaf.stake_merkle_root.0,
+            Hash::from(meta_merkle_leaf.stake_merkle_root),
         )?;
     } else if stake_merkle_leaf.is_some() || stake_merkle_proof.is_some() {
         return Err(NCNProgramError::InvalidVerifyMerkleInputs.into());

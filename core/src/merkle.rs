@@ -7,27 +7,10 @@ use solana_sdk::{
 
 use crate::error::NCNProgramError;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct BorshHash(pub Hash);
-
-impl BorshSerialize for BorshHash {
-    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
-        writer.write_all(self.0.as_ref())
-    }
-}
-
-impl BorshDeserialize for BorshHash {
-    fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
-        let mut buf = [0u8; 32];
-        reader.read_exact(&mut buf)?;
-        Ok(BorshHash(Hash::new_from_array(buf)))
-    }
-}
-
 #[derive(Clone, Debug, BorshSerialize, BorshDeserialize)]
 pub struct MetaMerkleSnapshot {
     /// Hash of MetaMerkleTree
-    pub root: BorshHash,
+    pub root: [u8; 32],
     /// Each bundle contains the meta-level leaf, its stake-level leaves, and proof.
     pub leaf_bundles: Vec<MetaMerkleLeafBundle>,
     /// Slot where the tree was generated.
@@ -72,7 +55,7 @@ pub struct MetaMerkleLeaf {
     pub vote_account: Pubkey,
     /// Root hash of the StakeMerkleTree, representing all active stake accounts
     /// delegated to the current vote account.
-    pub stake_merkle_root: BorshHash,
+    pub stake_merkle_root: [u8; 32],
     /// Total active delegated stake under this vote account.
     pub active_stake: u64,
 }
@@ -82,7 +65,7 @@ impl MetaMerkleLeaf {
         hashv(&[
             &self.voting_wallet.to_bytes(),
             &self.vote_account.to_bytes(),
-            &self.stake_merkle_root.0.to_bytes(),
+            &self.stake_merkle_root,
             &self.active_stake.to_le_bytes(),
         ])
     }
