@@ -37,4 +37,4 @@ spl-associated-token-account = { workspace = true }
 spl-token = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
-hex = "0.4"
+hex = { workspace = true }
