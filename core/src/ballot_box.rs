@@ -1,12 +1,11 @@
 // Ballot Box Module
 //
 // This module implements the core voting and consensus mechanism for the NCN program.
-// It allows operators to cast votes on proposed states (represented as 'weather statuses'),
+// It allows operators to cast votes on proposed states,
 // tallies those votes weighted by stake, and determines when consensus has been reached.
 //
 // Key components:
-// - WeatherStatus: Represents different possible states that validators vote on
-// - Ballot: A single vote for a particular weather status
+// - Ballot: A single vote for a particular data type
 // - BallotTally: Tracks total votes and stake weight for a specific ballot type
 // - OperatorVote: Records an individual operator's vote
 // - BallotBox: The main structure that manages the entire voting process
@@ -37,43 +36,6 @@ use crate::{
     loaders::check_load,
     stake_weight::StakeWeights,
 };
-
-/// Enum representing weather status
-#[derive(Debug, Default, Clone, Copy, Zeroable, PartialEq, Eq)]
-#[repr(C)]
-pub enum WeatherStatus {
-    /// Clear sunny weather
-    #[default]
-    Sunny = 0,
-    /// Cloudy weather conditions
-    Cloudy = 1,
-    /// Rainy weather conditions
-    Rainy = 2,
-}
-
-impl WeatherStatus {
-    /// Converts a u8 value to a weather status string
-    /// Returns None if the value is invalid
-    pub fn from_u8(value: u8) -> Option<&'static str> {
-        match value {
-            0 => Some("Sunny"),
-            1 => Some("Cloudy"),
-            2 => Some("Rainy"),
-            _ => None,
-        }
-    }
-}
-
-impl fmt::Display for WeatherStatus {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let status_str = match self {
-            WeatherStatus::Sunny => "Sunny",
-            WeatherStatus::Cloudy => "Cloudy",
-            WeatherStatus::Rainy => "Rainy",
-        };
-        write!(f, "{}", status_str)
-    }
-}
 
 /// Represents a ballot
 #[derive(Debug, Default, Clone, Copy, Zeroable, ShankType, Pod, PartialEq, Eq)]
