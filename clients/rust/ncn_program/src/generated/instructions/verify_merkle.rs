@@ -64,6 +64,7 @@ impl Default for VerifyMerkleInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct VerifyMerkleInstructionArgs {
     pub meta_merkle_proof: Vec<[u8; 32]>,
     pub meta_merkle_leaf: MetaMerkleLeaf,
