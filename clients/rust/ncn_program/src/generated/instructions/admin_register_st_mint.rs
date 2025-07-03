@@ -86,7 +86,6 @@ impl Default for AdminRegisterStMintInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AdminRegisterStMintInstructionArgs {
     pub weight: Option<u128>,
 }

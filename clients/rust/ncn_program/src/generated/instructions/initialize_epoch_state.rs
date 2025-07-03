@@ -93,7 +93,6 @@ impl Default for InitializeEpochStateInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct InitializeEpochStateInstructionArgs {
     pub epoch: u64,
 }

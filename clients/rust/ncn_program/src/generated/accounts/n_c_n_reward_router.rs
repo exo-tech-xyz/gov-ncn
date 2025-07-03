@@ -11,13 +11,8 @@ use borsh::BorshSerialize;
 use solana_program::pubkey::Pubkey;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct NCNRewardRouter {
     pub discriminator: u64,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
     pub ncn: Pubkey,
     pub epoch: u64,
     pub bump: u8,
@@ -25,14 +20,12 @@ pub struct NCNRewardRouter {
     pub total_rewards: u64,
     pub reward_pool: u64,
     pub rewards_processed: u64,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub reserved: [u8; 128],
     pub last_vote_index: u16,
     pub last_rewards_to_process: u64,
     pub protocol_rewards: u64,
     pub ncn_rewards: u64,
     pub operator_vault_rewards: u64,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub operator_vault_reward_routes: [OperatorVaultRewardRoute; 256],
 }
 

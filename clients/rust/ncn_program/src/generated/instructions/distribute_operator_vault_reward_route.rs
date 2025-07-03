@@ -111,7 +111,6 @@ impl Default for DistributeOperatorVaultRewardRouteInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DistributeOperatorVaultRewardRouteInstructionArgs {
     pub epoch: u64,
 }

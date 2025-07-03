@@ -99,7 +99,6 @@ impl Default for DistributeProtocolRewardsInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct DistributeProtocolRewardsInstructionArgs {
     pub epoch: u64,
 }

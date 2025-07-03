@@ -13,13 +13,8 @@ use borsh::BorshSerialize;
 use solana_program::pubkey::Pubkey;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct BallotBox {
     pub discriminator: u64,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
     pub ncn: Pubkey,
     pub epoch: u64,
     pub bump: u8,
@@ -28,9 +23,7 @@ pub struct BallotBox {
     pub operators_voted: u64,
     pub unique_ballots: u64,
     pub winning_ballot: Ballot,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub operator_votes: [OperatorVote; 256],
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub ballot_tallies: [BallotTally; 256],
 }
 

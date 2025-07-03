@@ -3645,6 +3645,7 @@ dependencies = [
  "ncn-program-client",
  "ncn-program-core",
  "rand 0.9.1",
+ "serde_json",
  "shank",
  "solana-program",
  "solana-program-test",

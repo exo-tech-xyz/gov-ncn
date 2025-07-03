@@ -87,7 +87,6 @@ impl Default for AdminSetTieBreakerInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AdminSetTieBreakerInstructionArgs {
     pub merkle_root: [u8; 32],
     pub snapshot_hash: [u8; 32],

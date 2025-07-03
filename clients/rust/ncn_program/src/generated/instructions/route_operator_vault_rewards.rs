@@ -93,7 +93,6 @@ impl Default for RouteOperatorVaultRewardsInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RouteOperatorVaultRewardsInstructionArgs {
     pub max_iterations: u16,
     pub epoch: u64,

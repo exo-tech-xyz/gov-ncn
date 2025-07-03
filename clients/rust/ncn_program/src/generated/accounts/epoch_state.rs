@@ -12,13 +12,8 @@ use borsh::BorshSerialize;
 use solana_program::pubkey::Pubkey;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EpochState {
     pub discriminator: u64,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
     pub ncn: Pubkey,
     pub epoch: u64,
     pub bump: u8,
@@ -30,14 +25,12 @@ pub struct EpochState {
     pub account_status: EpochAccountStatus,
     pub set_weight_progress: Progress,
     pub epoch_snapshot_progress: Progress,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub operator_snapshot_progress: [Progress; 256],
     pub voting_progress: Progress,
     pub total_distribution_progress: Progress,
     pub ncn_distribution_progress: Progress,
     pub protocol_distribution_progress: Progress,
     pub operator_vault_distribution_progress: Progress,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub operator_vault_routes_distribution_progress: [Progress; 256],
     pub is_closing: bool,
 }

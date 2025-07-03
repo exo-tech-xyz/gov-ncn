@@ -97,7 +97,6 @@ impl Default for RouteNCNRewardsInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct RouteNCNRewardsInstructionArgs {
     pub max_iterations: u16,
     pub epoch: u64,

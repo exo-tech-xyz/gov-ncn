@@ -79,7 +79,6 @@ impl Default for AdminSetStMintInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AdminSetStMintInstructionArgs {
     pub st_mint: Pubkey,
     pub weight: Option<u128>,

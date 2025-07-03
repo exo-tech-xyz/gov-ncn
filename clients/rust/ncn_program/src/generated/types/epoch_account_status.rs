@@ -9,15 +9,12 @@ use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct EpochAccountStatus {
     pub epoch_state: u8,
     pub weight_table: u8,
     pub epoch_snapshot: u8,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub operator_snapshot: [u8; 256],
     pub ballot_box: u8,
     pub ncn_reward_router: u8,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub operator_vault_reward_router: [u8; 256],
 }

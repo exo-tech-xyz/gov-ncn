@@ -75,7 +75,6 @@ impl Default for AdminSetParametersInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct AdminSetParametersInstructionArgs {
     pub starting_valid_epoch: Option<u64>,
     pub epochs_before_stall: Option<u64>,

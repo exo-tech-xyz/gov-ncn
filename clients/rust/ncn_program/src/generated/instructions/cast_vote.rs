@@ -109,7 +109,6 @@ impl Default for CastVoteInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct CastVoteInstructionArgs {
     pub merkle_root: [u8; 32],
     pub snapshot_hash: [u8; 32],

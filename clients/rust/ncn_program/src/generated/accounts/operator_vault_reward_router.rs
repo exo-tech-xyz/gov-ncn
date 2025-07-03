@@ -11,18 +11,9 @@ use borsh::BorshSerialize;
 use solana_program::pubkey::Pubkey;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct OperatorVaultRewardRouter {
     pub discriminator: u64,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
     pub operator: Pubkey,
-    #[cfg_attr(
-        feature = "serde",
-        serde(with = "serde_with::As::<serde_with::DisplayFromStr>")
-    )]
     pub ncn: Pubkey,
     pub epoch: u64,
     pub bump: u8,
@@ -34,7 +25,6 @@ pub struct OperatorVaultRewardRouter {
     pub operator_rewards: u64,
     pub last_rewards_to_process: u64,
     pub last_vault_operator_delegation_index: u16,
-    #[cfg_attr(feature = "serde", serde(with = "serde_with::As::<serde_with::Bytes>"))]
     pub vault_reward_routes: [VaultRewardRoute; 64],
 }
 

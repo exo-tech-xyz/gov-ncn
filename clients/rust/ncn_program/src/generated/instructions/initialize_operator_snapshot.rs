@@ -123,7 +123,6 @@ impl Default for InitializeOperatorSnapshotInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct InitializeOperatorSnapshotInstructionArgs {
     pub epoch: u64,
 }

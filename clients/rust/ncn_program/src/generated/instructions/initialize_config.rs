@@ -97,7 +97,6 @@ impl Default for InitializeConfigInstructionData {
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct InitializeConfigInstructionArgs {
     pub epochs_before_stall: u64,
     pub epochs_after_consensus_before_close: u64,
