@@ -2,6 +2,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     entrypoint::ProgramResult,
     hash::{hashv, Hash},
+    msg,
     pubkey::Pubkey,
 };
 
@@ -109,6 +110,7 @@ pub fn verify_helper(leaf_content: &[u8], proof_vec: Vec<[u8; 32]>, root: Hash) 
     }
 
     if root != node {
+        msg!("Root {:?} != Node {:?}", root, node);
         return Err(NCNProgramError::InvalidProof.into());
     }
 

@@ -18,9 +18,9 @@ use ncn_program_client::{
         InitializeWeightTableBuilder, ReallocBallotBoxBuilder, ReallocNCNRewardRouterBuilder,
         ReallocVaultRegistryBuilder, ReallocWeightTableBuilder, RegisterVaultBuilder,
         RouteNCNRewardsBuilder, RouteOperatorVaultRewardsBuilder, SetEpochWeightsBuilder,
-        SnapshotVaultOperatorDelegationBuilder,
+        SnapshotVaultOperatorDelegationBuilder, VerifyMerkleBuilder,
     },
-    types::ConfigAdminRole,
+    types::{ConfigAdminRole, MetaMerkleLeaf, StakeMerkleLeaf},
 };
 use ncn_program_core::{
     account_payer::AccountPayer,
@@ -2048,6 +2048,40 @@ impl NCNProgramClient {
             .system_program(system_program::id())
             .epoch(epoch)
             .instruction();
+
+        let blockhash = self.banks_client.get_latest_blockhash().await?;
+        self.process_transaction(&Transaction::new_signed_with_payer(
+            &[ix],
+            Some(&self.payer.pubkey()),
+            &[&self.payer],
+            blockhash,
+        ))
+        .await
+    }
+
+    pub async fn do_verify_merkle(
+        &mut self,
+        ncn: Pubkey,
+        epoch: u64,
+        meta_merkle_proof: Vec<[u8; 32]>,
+        meta_merkle_leaf: MetaMerkleLeaf,
+        stake_merkle_proof: Option<Vec<[u8; 32]>>,
+        stake_merkle_leaf: Option<StakeMerkleLeaf>,
+    ) -> TestResult<()> {
+        let consensus_result =
+            ConsensusResult::find_program_address(&ncn_program::id(), &ncn, epoch).0;
+        let mut builder = VerifyMerkleBuilder::new();
+        builder
+            .consensus_result(consensus_result)
+            .meta_merkle_proof(meta_merkle_proof)
+            .meta_merkle_leaf(meta_merkle_leaf);
+        if let Some(stake_proof) = stake_merkle_proof {
+            builder.stake_merkle_proof(stake_proof);
+        }
+        if let Some(stake_leaf) = stake_merkle_leaf {
+            builder.stake_merkle_leaf(stake_leaf);
+        }
+        let ix = builder.instruction();
 
         let blockhash = self.banks_client.get_latest_blockhash().await?;
         self.process_transaction(&Transaction::new_signed_with_payer(
