@@ -12,7 +12,7 @@ readme = { workspace = true }
 [dependencies]
 log = "0.4.21"
 ncn-program = { workspace = true }
-ncn-program-client = { workspace = true }
+ncn-program-client = { workspace = true, features = ["serde"] }
 ncn-program-core = { workspace = true }
 rand = "0.9.1"
 
@@ -38,3 +38,4 @@ spl-token = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 hex = { workspace = true }
+serde_json = "1.0.102"
