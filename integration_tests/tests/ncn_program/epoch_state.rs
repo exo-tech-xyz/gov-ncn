@@ -32,7 +32,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn cannot_create_after_epoch_marker() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -65,7 +64,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_all_test_ncn_functions_pt1() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -104,7 +102,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_all_test_ncn_functions_pt2() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -147,7 +144,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_all_test_ncn_functions_pt3() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -201,7 +197,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_all_test_ncn_functions_pt4() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();

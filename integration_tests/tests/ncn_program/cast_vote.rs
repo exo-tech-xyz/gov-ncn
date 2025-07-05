@@ -151,8 +151,6 @@ mod tests {
         Ok(())
     }
 
-    // TODO: Failing with OperatorAlreadyVoted
-    #[ignore = "long test"]
     #[tokio::test]
     async fn test_cast_vote_max_cu() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
@@ -178,7 +176,7 @@ mod tests {
 
         for operator in test_ncn.operators {
             let operator_admin = &operator.operator_admin;
-            let i = rand::rng().random_range(0..=2);
+            let i = rand::rng().random_range(1..=3);
 
             ncn_program_client
                 .do_cast_vote(

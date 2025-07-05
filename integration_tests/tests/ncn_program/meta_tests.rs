@@ -4,7 +4,6 @@ mod tests {
     use crate::fixtures::{test_builder::TestBuilder, TestResult};
 
     #[tokio::test]
-    #[ignore]
     async fn test_all_test_ncn_functions() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         fixture.initialize_restaking_and_vault_programs().await?;
@@ -45,7 +44,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_intermission_test_ncn_functions() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -80,7 +78,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_multiple_operators() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -116,7 +113,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_multiple_vaults() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -153,7 +149,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn test_multiple_operators_and_vaults() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();

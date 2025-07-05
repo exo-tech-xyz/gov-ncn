@@ -16,7 +16,6 @@ mod tests {
     };
 
     #[tokio::test]
-    #[ignore]
     async fn close_all_epoch_accounts_ok() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
 
@@ -35,7 +34,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn cannot_close_before_enough_epochs_after_consensus() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -121,7 +119,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn cannot_close_epoch_state_before_others() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -169,7 +166,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn cannot_close_closed_account() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -236,7 +232,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn cannot_reopen_accounts() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
@@ -470,7 +465,6 @@ mod tests {
     }
 
     #[tokio::test]
-    #[ignore]
     async fn cannot_close_wrong_epoch_or_ncn_accounts() -> TestResult<()> {
         let mut fixture = TestBuilder::new().await;
         let mut ncn_program_client = fixture.ncn_program_client();
