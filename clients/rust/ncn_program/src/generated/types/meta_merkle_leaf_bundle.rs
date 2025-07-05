@@ -11,7 +11,6 @@ use borsh::BorshDeserialize;
 use borsh::BorshSerialize;
 
 #[derive(BorshSerialize, BorshDeserialize, Clone, Debug, Eq, PartialEq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct MetaMerkleLeafBundle {
     pub meta_merkle_leaf: MetaMerkleLeaf,
     pub stake_merkle_leaves: Vec<StakeMerkleLeaf>,

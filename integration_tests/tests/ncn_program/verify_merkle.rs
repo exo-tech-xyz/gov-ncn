@@ -4,6 +4,7 @@ mod tests {
     use crate::fixtures::ncn_program_client::{assert_ncn_program_error, NCNProgramClient};
     use crate::fixtures::test_builder::TestNcn;
     use crate::fixtures::{test_builder::TestBuilder, TestResult};
+    use borsh::BorshDeserialize;
     use jito_restaking_core::{config::Config, ncn_vault_ticket::NcnVaultTicket};
     use meta_merkle_tree::merkle_tree::MerkleTree;
     use ncn_program_client::types::{MetaMerkleSnapshot, StakeMerkleLeaf};
@@ -16,12 +17,14 @@ mod tests {
         signer::Signer,
     };
     use std::fs::File;
-    use std::io::BufReader;
+    use std::io::{self, Read};
 
-    fn read_meta_merkle_snapshot(path: &str) -> MetaMerkleSnapshot {
-        let file = File::open(path).expect("Failed to open file");
-        let reader = BufReader::new(file);
-        serde_json::from_reader(reader).expect("Failed to deserialize")
+    fn read_meta_merkle_snapshot(path: &str) -> io::Result<MetaMerkleSnapshot> {
+        let mut file = File::open(path)?;
+        let mut buf = Vec::new();
+        file.read_to_end(&mut buf)?;
+        MetaMerkleSnapshot::try_from_slice(&buf)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))
     }
 
     fn get_stake_merkle_proof(
@@ -120,10 +123,10 @@ mod tests {
     #[tokio::test]
     async fn verify_merkle() -> TestResult<()> {
         let path = format!(
-            "{}/tests/fixtures/meta_merkle.json",
+            "{}/tests/fixtures/meta_merkle.bin",
             env!("CARGO_MANIFEST_DIR")
         );
-        let meta_merkle_snapshot = read_meta_merkle_snapshot(&path);
+        let meta_merkle_snapshot = read_meta_merkle_snapshot(&path)?;
 
         // 0. Building the test environment
         let mut fixture = TestBuilder::new().await;
