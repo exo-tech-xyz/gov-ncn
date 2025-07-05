@@ -140,9 +140,6 @@ mod tests {
         let operator_fee_bps = 0; // No fees involved.
 
         // 2. Initializing all the needed accounts using Jito's Staking and Vault programs
-        // this step will initialize the NCN account, and all the operators and vaults accounts,
-        // it will also initialize the handshake relationships between all the NCN components
-
         // 2.a. Initialize the NCN account using the Jito Restaking program
         let mut test_ncn = fixture.create_test_ncn().await?;
         let ncn_pubkey = test_ncn.ncn_root.ncn_pubkey;
@@ -218,7 +215,7 @@ mod tests {
             }
         }
 
-        // 4. Prepare the voting environment
+        // 4. Prepare the voting environment and Vote for all operators
         let epoch1 = fixture.clock().await.epoch;
         setup_voting_epoch(&mut fixture, &mut test_ncn, &mut ncn_program_client).await?;
         cast_votes(
@@ -231,7 +228,7 @@ mod tests {
         )
         .await?;
 
-        // 6. Verify for some vote accounts
+        // 5. Verify for some vote accounts
         for i in 0..10 {
             let bundle = &meta_merkle_snapshot.leaf_bundles[i * 10];
 
@@ -266,7 +263,7 @@ mod tests {
             }
         }
 
-        // 7. Expect failure for wrong proofs.
+        // 6. Expect failure for wrong proofs.
         for i in 0..10 {
             let bundle1 = &meta_merkle_snapshot.leaf_bundles[i + 5];
             let bundle2 = &meta_merkle_snapshot.leaf_bundles[i + 3];
@@ -306,7 +303,7 @@ mod tests {
             }
         }
 
-        // Test invalid consensus result
+        // 7. Test invalid consensus result
         let bundle = &meta_merkle_snapshot.leaf_bundles[0];
         let meta_proof = bundle.proof.clone().unwrap();
         let meta_leaf = bundle.meta_merkle_leaf.clone();
